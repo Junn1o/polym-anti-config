@@ -5,6 +5,8 @@ import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.junnio.antifreecam.config.ConfigSync;
 import com.junnio.antifreecam.config.ModConfig;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
@@ -21,7 +23,7 @@ import java.util.Map;
 
 public class NetworkManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
-
+    private static ModConfig config;
     public static void init() {
         // Server sends configs to client during login
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
@@ -29,7 +31,8 @@ public class NetworkManager {
             Path configDir = FabricLoader.getInstance().getConfigDir();
 
             // Load server configs based on ModConfig
-            ModConfig config = ModConfig.getInstance();
+            AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
+            config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
             for (String filename : config.getConfigFilesToCheck()) {
                 Path configPath = configDir.resolve(filename);
                 if (Files.exists(configPath)) {
@@ -67,7 +70,8 @@ public class NetworkManager {
             boolean mismatch = false;
             StringBuilder mismatched = new StringBuilder();
 
-            ModConfig config = ModConfig.getInstance();
+            AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
+            config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
             Path configDir = FabricLoader.getInstance().getConfigDir();
 
             for (String filename : config.getConfigFilesToCheck()) {

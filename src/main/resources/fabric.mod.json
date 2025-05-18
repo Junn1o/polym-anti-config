@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"com.junnio.antifreecam.AntifreecamClient"
+		],
+		"modmenu": [
+			"com.junnio.antifreecam.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -33,7 +36,8 @@
 		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21.4",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cloth-config": ">=13.0.0"
 	},
 	"suggests": {
 		"another-mod": "*"

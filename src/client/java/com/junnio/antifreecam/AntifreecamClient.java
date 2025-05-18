@@ -2,6 +2,8 @@ package com.junnio.antifreecam;
 
 import com.junnio.antifreecam.config.ConfigSync;
 import com.junnio.antifreecam.config.ModConfig;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.minecraft.network.PacketByteBuf;
@@ -15,14 +17,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class AntifreecamClient implements ClientModInitializer {
 	private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
-
+	private static ModConfig config;
 	@Override
 	public void onInitializeClient() {
-		// Load mod config
-		ModConfig.load();
-
-		// Register configs from ModConfig
-		ModConfig config = ModConfig.getInstance();
 		for (String configFile : config.getConfigFilesToCheck()) {
 			ConfigSync.registerConfigToCheck(configFile);
 		}
@@ -49,5 +46,8 @@ public class AntifreecamClient implements ClientModInitializer {
 
 			return CompletableFuture.completedFuture(response);
 		});
+	}
+	public static ModConfig getConfig() {
+		return config;
 	}
 }
