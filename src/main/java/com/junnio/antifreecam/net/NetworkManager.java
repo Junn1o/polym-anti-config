@@ -4,39 +4,47 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.junnio.antifreecam.config.ConfigSync;
+import com.junnio.antifreecam.config.ModConfig;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static net.minecraft.data.DataProvider.LOGGER;
-
 public class NetworkManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
+
     public static void init() {
         // Server sends configs to client during login
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             Map<String, String> serverConfigs = new HashMap<>();
             Path configDir = FabricLoader.getInstance().getConfigDir();
 
-            // Load server configs
-            Path freecamPath = configDir.resolve("freecam.json");
-            if (Files.exists(freecamPath)) {
-                FileConfig config = FileConfig.of(freecamPath, JsonFormat.minimalInstance());
-                config.load();
-                serverConfigs.put("freecam.json", config.valueMap().toString());
-            }
-
-            Path barsPath = configDir.resolve("leavemybarsalone-client.toml");
-            if (Files.exists(barsPath)) {
-                FileConfig config = FileConfig.of(barsPath, TomlFormat.instance());
-                config.load();
-                serverConfigs.put("leavemybarsalone-client.toml", config.valueMap().toString());
+            // Load server configs based on ModConfig
+            ModConfig config = ModConfig.getInstance();
+            for (String filename : config.getConfigFilesToCheck()) {
+                Path configPath = configDir.resolve(filename);
+                if (Files.exists(configPath)) {
+                    FileConfig fileConfig;
+                    if (filename.endsWith(".json")) {
+                        fileConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                    } else if (filename.endsWith(".toml")) {
+                        fileConfig = FileConfig.of(configPath, TomlFormat.instance());
+                    } else {
+                        LOGGER.warn("Unsupported config format for file: {}", filename);
+                        continue;
+                    }
+                    fileConfig.load();
+                    serverConfigs.put(filename, fileConfig.valueMap().toString());
+                }
             }
 
             // Send server configs to client
@@ -55,33 +63,33 @@ public class NetworkManager {
             // Read client configs
             Map<String, String> clientConfigs = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
 
-            // Load server configs for comparison
-            Map<String, String> serverConfigs = new HashMap<>();
-            Path configDir = FabricLoader.getInstance().getConfigDir();
-
-            // Check each config file
+            // Check each config file from ModConfig
             boolean mismatch = false;
             StringBuilder mismatched = new StringBuilder();
 
-            for (Map.Entry<String, String> entry : clientConfigs.entrySet()) {
-                String filename = entry.getKey();
-                String clientContent = entry.getValue();
+            ModConfig config = ModConfig.getInstance();
+            Path configDir = FabricLoader.getInstance().getConfigDir();
 
-                Path configPath = configDir.resolve(filename);
-                if (Files.exists(configPath)) {
-                    FileConfig serverConfig;
-                    if (filename.endsWith(".json")) {
-                        serverConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
-                    } else if (filename.endsWith(".toml")) {
-                        serverConfig = FileConfig.of(configPath, TomlFormat.instance());
-                    } else {
-                        continue;
-                    }
-                    serverConfig.load();
+            for (String filename : config.getConfigFilesToCheck()) {
+                if (clientConfigs.containsKey(filename)) {
+                    String clientContent = clientConfigs.get(filename);
+                    Path configPath = configDir.resolve(filename);
 
-                    if (!serverConfig.valueMap().toString().equals(clientContent)) {
-                        mismatch = true;
-                        mismatched.append(filename).append(", ");
+                    if (Files.exists(configPath)) {
+                        FileConfig serverConfig;
+                        if (filename.endsWith(".json")) {
+                            serverConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                        } else if (filename.endsWith(".toml")) {
+                            serverConfig = FileConfig.of(configPath, TomlFormat.instance());
+                        } else {
+                            continue;
+                        }
+                        serverConfig.load();
+
+                        if (!serverConfig.valueMap().toString().equals(clientContent)) {
+                            mismatch = true;
+                            mismatched.append(filename).append(", ");
+                        }
                     }
                 }
             }

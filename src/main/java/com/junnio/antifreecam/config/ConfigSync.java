@@ -43,12 +43,11 @@ public class ConfigSync {
         }
         return null;
     }
-
-    public static boolean compareConfig(String filename, String serverContent) {
-        String clientContent = getConfigContent(filename);
-        if (clientContent == null) {
-            return false; // Skip if config doesn't exist on client
+    public static void registerConfigsFromModConfig() {
+        ModConfig config = ModConfig.getInstance();
+        for (String filename : config.getConfigFilesToCheck()) {
+            registerConfigToCheck(filename);
         }
-        return clientContent.equals(serverContent);
     }
+
 }

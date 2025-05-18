@@ -1,22 +1,31 @@
 package com.junnio.antifreecam;
 
 import com.junnio.antifreecam.config.ConfigSync;
+import com.junnio.antifreecam.config.ModConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.text.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class AntifreecamClient implements ClientModInitializer {
+	private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
+
 	@Override
 	public void onInitializeClient() {
-		// Register configs to check
-		ConfigSync.registerConfigToCheck("freecam.json");
-		ConfigSync.registerConfigToCheck("leavemybarsalone-client.toml");
+		// Load mod config
+		ModConfig.load();
+
+		// Register configs from ModConfig
+		ModConfig config = ModConfig.getInstance();
+		for (String configFile : config.getConfigFilesToCheck()) {
+			ConfigSync.registerConfigToCheck(configFile);
+		}
 
 		// Register config sync handler
 		ClientLoginNetworking.registerGlobalReceiver(ConfigSync.CONFIG_SYNC_ID, (client, handler, buf, listenerAdder) -> {
@@ -29,6 +38,8 @@ public class AntifreecamClient implements ClientModInitializer {
 				String content = ConfigSync.getConfigContent(filename);
 				if (content != null) {
 					clientConfigs.put(filename, content);
+				} else {
+					LOGGER.warn("Failed to read client config: {}", filename);
 				}
 			}
 

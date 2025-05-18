@@ -1,6 +1,7 @@
 package com.junnio.antifreecam;
 
 import com.junnio.antifreecam.config.ConfigSync;
+import com.junnio.antifreecam.config.ModConfig;
 import com.junnio.antifreecam.net.NetworkManager;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
@@ -13,7 +14,9 @@ public class Antifreecam implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModConfig.load();
 		NetworkManager.init();
+		ConfigSync.registerConfigsFromModConfig();
 	}
 
 	public static Identifier id(String path) {
