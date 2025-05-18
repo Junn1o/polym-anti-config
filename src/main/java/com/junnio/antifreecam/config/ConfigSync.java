@@ -4,8 +4,6 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -21,7 +19,6 @@ public class ConfigSync {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
     public static final Identifier CONFIG_SYNC_ID = Identifier.of("antifreecam", "config_sync");
     private static final Map<String, FileConfig> CONFIGS_TO_CHECK = new HashMap<>();
-    private static ModConfig config;
 
     public static void registerConfigToCheck(String filename) {
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(filename);
@@ -47,6 +44,7 @@ public class ConfigSync {
         return null;
     }
     public static void registerConfigsFromModConfig() {
+        ModConfig config = ModConfig.getInstance();
         for (String filename : config.getConfigFilesToCheck()) {
             registerConfigToCheck(filename);
         }

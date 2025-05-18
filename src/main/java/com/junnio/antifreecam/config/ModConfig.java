@@ -2,9 +2,6 @@ package com.junnio.antifreecam.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-@Config(name = "antifreecam")
-public class ModConfig implements ConfigData {
-    @ConfigEntry.Gui.Excluded
-    public static ModConfig INSTANCE;
+
+public class ModConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
     private static final String CONFIG_FILE = "antifreecam.json";
+    private static ModConfig INSTANCE;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     // Configuration fields
