@@ -2,8 +2,10 @@ package com.junnio.antifreecam;
 
 import com.junnio.antifreecam.config.ConfigSync;
 import com.junnio.antifreecam.config.ModConfig;
+import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.network.PacketByteBuf;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import org.slf4j.Logger;
@@ -48,6 +50,13 @@ public class AntifreecamClient implements ClientModInitializer {
 			response.writeMap(clientConfigs, PacketByteBuf::writeString, PacketByteBuf::writeString);
 
 			return CompletableFuture.completedFuture(response);
+		});
+		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+			if (screen instanceof ClothConfigScreen) {
+				ScreenEvents.remove(screen).register((closedScreen) -> {
+					System.out.println("Cloth Config screen closed!");
+				});
+			}
 		});
 	}
 }
