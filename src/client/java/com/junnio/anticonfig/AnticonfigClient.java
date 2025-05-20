@@ -2,8 +2,10 @@ package com.junnio.anticonfig;
 
 import com.junnio.anticonfig.config.ConfigSync;
 import com.junnio.anticonfig.config.ModConfig;
+import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.network.PacketByteBuf;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import org.slf4j.Logger;
@@ -14,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class AnticonfigClient implements ClientModInitializer {
-	private static final Logger LOGGER = LoggerFactory.getLogger("anticonfig");
+	private static final Logger LOGGER = LoggerFactory.getLogger("ClientModInitializer");
 
 	@Override
 	public void onInitializeClient() {
@@ -48,6 +50,14 @@ public class AnticonfigClient implements ClientModInitializer {
 			response.writeMap(clientConfigs, PacketByteBuf::writeString, PacketByteBuf::writeString);
 
 			return CompletableFuture.completedFuture(response);
+		});
+		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+			if (screen instanceof ClothConfigScreen) {
+				ScreenEvents.remove(screen).register((closedScreen) -> {
+					System.out.println("Cloth Config screen closed!");
+					ConfigScreenHandler.onConfigScreenClose();
+				});
+			}
 		});
 	}
 }

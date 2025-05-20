@@ -2,6 +2,7 @@ package com.junnio.anticonfig;
 
 import com.junnio.anticonfig.config.ConfigSync;
 import com.junnio.anticonfig.config.ModConfig;
+import com.junnio.anticonfig.net.ConfigScreenSync;
 import com.junnio.anticonfig.net.NetworkManager;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
@@ -17,6 +18,7 @@ public class Anticonfig implements ModInitializer {
 		ModConfig.load();
 		NetworkManager.init();
 		ConfigSync.registerConfigsFromModConfig();
+		ConfigScreenSync.initServer();
 	}
 
 	public static Identifier id(String path) {
