@@ -1,10 +1,10 @@
-package com.junnio.antifreecam.net;
+package com.junnio.anticonfig.net;
 
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.junnio.antifreecam.config.ConfigSync;
-import com.junnio.antifreecam.config.ModConfig;
+import com.junnio.anticonfig.config.ConfigSync;
+import com.junnio.anticonfig.config.ModConfig;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NetworkManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
 
     public static void init() {
         // Server sends configs to client during login

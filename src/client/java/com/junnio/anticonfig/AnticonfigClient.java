@@ -1,7 +1,7 @@
-package com.junnio.antifreecam;
+package com.junnio.anticonfig;
 
-import com.junnio.antifreecam.config.ConfigSync;
-import com.junnio.antifreecam.config.ModConfig;
+import com.junnio.anticonfig.config.ConfigSync;
+import com.junnio.anticonfig.config.ModConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.minecraft.network.PacketByteBuf;
@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class AntifreecamClient implements ClientModInitializer {
-	private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
+public class AnticonfigClient implements ClientModInitializer {
+	private static final Logger LOGGER = LoggerFactory.getLogger("anticonfig");
 
 	@Override
 	public void onInitializeClient() {

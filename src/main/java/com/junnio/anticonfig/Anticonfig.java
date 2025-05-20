@@ -1,15 +1,15 @@
-package com.junnio.antifreecam;
+package com.junnio.anticonfig;
 
-import com.junnio.antifreecam.config.ConfigSync;
-import com.junnio.antifreecam.config.ModConfig;
-import com.junnio.antifreecam.net.NetworkManager;
+import com.junnio.anticonfig.config.ConfigSync;
+import com.junnio.anticonfig.config.ModConfig;
+import com.junnio.anticonfig.net.NetworkManager;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Antifreecam implements ModInitializer {
-	public static final String MODID = "antifreecam";
+public class Anticonfig implements ModInitializer {
+	public static final String MODID = "anticonfig";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
 	@Override

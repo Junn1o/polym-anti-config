@@ -1,10 +1,9 @@
 {
 	"required": true,
-	"minVersion": "0.8",
-	"package": "com.junnio.antifreecam.mixin",
+	"package": "com.junnio.anticonfig.mixin.client",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
+	"client": [
+		"ExampleClientMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -1,4 +1,4 @@
-package com.junnio.antifreecam.config;
+package com.junnio.anticonfig.config;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigSync {
-    private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
-    public static final Identifier CONFIG_SYNC_ID = Identifier.of("antifreecam", "config_sync");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
+    public static final Identifier CONFIG_SYNC_ID = Identifier.of("anticonfig", "config_sync");
     private static final Map<String, FileConfig> CONFIGS_TO_CHECK = new HashMap<>();
 
     public static void registerConfigToCheck(String filename) {
