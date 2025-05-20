@@ -1,4 +1,4 @@
-package com.junnio.antifreecam.config;
+package com.junnio.anticonfig.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger("AntiFreecam");
-    private static final String CONFIG_FILE = "antifreecam.json";
+    private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
+    private static final String CONFIG_FILE = "anticonfig.json";
     private static ModConfig INSTANCE;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
@@ -43,7 +43,7 @@ public class ModConfig {
             try {
                 String json = Files.readString(configPath);
                 INSTANCE = GSON.fromJson(json, ModConfig.class);
-                LOGGER.info("Loaded AntiFreecam config");
+                LOGGER.info("Loaded AntiConfig config");
             } catch (IOException e) {
                 LOGGER.error("Failed to read config file", e);
                 INSTANCE = new ModConfig();
@@ -59,7 +59,7 @@ public class ModConfig {
         try {
             String json = GSON.toJson(INSTANCE);
             Files.writeString(configPath, json);
-            LOGGER.info("Saved AntiFreecam config");
+            LOGGER.info("Saved AntiConfig config");
         } catch (IOException e) {
             LOGGER.error("Failed to save config file", e);
         }

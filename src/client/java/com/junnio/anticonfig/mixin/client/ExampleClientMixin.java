@@ -1,4 +1,4 @@
-package com.junnio.antifreecam.mixin.client;
+package com.junnio.anticonfig.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;

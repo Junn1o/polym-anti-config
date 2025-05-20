@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "antifreecam",
+	"id": "anticonfig",
 	"version": "${version}",
-	"name": "antifreecam",
+	"name": "anticonfig",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -12,20 +12,20 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/antifreecam/icon.png",
+	"icon": "assets/anticonfig/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.junnio.antifreecam.Antifreecam"
+			"com.junnio.anticonfig.Anticonfig"
 		],
 		"client": [
-			"com.junnio.antifreecam.AntifreecamClient"
+			"com.junnio.anticonfig.AnticonfigClient"
 		]
 	},
 	"mixins": [
-		"antifreecam.mixins.json",
+		"anticonfig.mixins.json",
 		{
-			"config": "antifreecam.client.mixins.json",
+			"config": "anticonfig.client.mixins.json",
 			"environment": "client"
 		}
 	],
