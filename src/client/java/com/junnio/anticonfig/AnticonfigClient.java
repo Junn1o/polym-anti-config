@@ -29,7 +29,7 @@ public class AnticonfigClient implements ClientModInitializer {
 		ClientLoginNetworking.registerGlobalReceiver(ConfigSync.CONFIG_SYNC_ID, (client, handler, buf, listenerAdder) -> {
 			// Read server configs
 			Map<String, String> serverConfigs = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
-
+			ConfigScreenHandler.setServerConfigs(serverConfigs);
 			// Prepare client configs
 			Map<String, String> clientConfigs = new HashMap<>();
 			Path configDir = FabricLoader.getInstance().getConfigDir();
@@ -59,11 +59,11 @@ public class AnticonfigClient implements ClientModInitializer {
 
 			return CompletableFuture.completedFuture(response);
 		});
-
 		// Screen events for config changes
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
 			if (screen instanceof ClothConfigScreen) {
 				ScreenEvents.remove(screen).register((closedScreen) -> {
+					System.out.println("Screen closed");
 					ConfigScreenHandler.onConfigScreenClose();
 				});
 			}

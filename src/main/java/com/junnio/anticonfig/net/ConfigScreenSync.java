@@ -30,6 +30,7 @@ public class ConfigScreenSync {
                 ModConfig config = ModConfig.getInstance();
                 Path configDir = FabricLoader.getInstance().getConfigDir();
 
+                // Get current server configs
                 for (String filename : config.getConfigFilesToCheck()) {
                     Path configPath = configDir.resolve(filename);
                     if (Files.exists(configPath)) {
@@ -47,9 +48,24 @@ public class ConfigScreenSync {
                     }
                 }
 
+                // Compare with client configs
+                Map<String, String> clientConfigs = payload.configs();
+                for (Map.Entry<String, String> entry : serverConfigs.entrySet()) {
+                    String filename = entry.getKey();
+                    String serverContent = entry.getValue();
+                    String clientContent = clientConfigs.get(filename);
+
+                    if (!serverContent.equals(clientContent)) {
+                        mismatch = true;
+                        mismatched.append(filename).append(", ");
+                    }
+                }
+
                 if (mismatch) {
                     String files = mismatched.substring(0, mismatched.length() - 2);
-                    context.player().sendMessage(Text.literal("§cConfig mismatch detected! Some settings will not take effect."));
+                    context.player().sendMessage(Text.literal("§cConfig mismatch detected! Please make sure these configs match the server: " + files));
+                    // Optionally kick the player if configs don't match
+                    context.player().networkHandler.disconnect(Text.literal("Config mismatch! Please make sure these configs match the server: " + files));
                 }
             });
         });
