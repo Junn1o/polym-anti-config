@@ -3,22 +3,30 @@ package com.junnio.anticonfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.config.ConfigSync;
 import com.junnio.anticonfig.config.ModConfig;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
+import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.JsonObject;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+
 
 public class AnticonfigClient implements ClientModInitializer {
 	private static final Logger LOGGER = LoggerFactory.getLogger("ClientModInitializer");
@@ -43,7 +51,9 @@ public class AnticonfigClient implements ClientModInitializer {
 						config = FileConfig.of(configPath, JsonFormat.minimalInstance());
 					} else if (filename.endsWith(".toml")) {
 						config = FileConfig.of(configPath, TomlFormat.instance());
-					} else {
+					} else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
+						config = FileConfig.of(configPath, YamlFormat.defaultInstance());
+					}else {
 						continue;
 					}
 					config.load();
@@ -61,13 +71,13 @@ public class AnticonfigClient implements ClientModInitializer {
 		});
 		// Screen events for config changes
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-			if (screen instanceof ClothConfigScreen) {
-				ScreenEvents.remove(screen).register((closedScreen) -> {
-					System.out.println("Screen closed");
-					ConfigScreenHandler.onConfigScreenClose();
-				});
-			}
-		});
+            if (screen instanceof ClothConfigScreen) {
+                ScreenEvents.remove(screen).register((closedScreen) -> {
+                    System.out.println("Screen closed");
+                    ConfigScreenHandler.onConfigScreenClose();
+                });
+            }
+        });
 	}
 
 }

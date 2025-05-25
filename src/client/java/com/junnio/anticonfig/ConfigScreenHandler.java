@@ -3,6 +3,7 @@ package com.junnio.anticonfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.config.ConfigSync;
 import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.net.ConfigScreenSync;
@@ -48,6 +49,8 @@ public class ConfigScreenHandler {
                         config = FileConfig.of(configPath, JsonFormat.minimalInstance());
                     } else if (filename.endsWith(".toml")) {
                         config = FileConfig.of(configPath, TomlFormat.instance());
+                    } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
+                        config = FileConfig.of(configPath, YamlFormat.defaultInstance());
                     } else {
                         continue;
                     }

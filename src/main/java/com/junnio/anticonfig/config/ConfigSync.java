@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.electronwill.nightconfig.yaml.YamlFormat;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -28,7 +29,9 @@ public class ConfigSync {
                 config = FileConfig.of(configPath, JsonFormat.minimalInstance());
             } else if (filename.endsWith(".toml")) {
                 config = FileConfig.of(configPath, TomlFormat.instance());
-            } else {
+            } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
+                config = FileConfig.of(configPath, YamlFormat.defaultInstance());
+            }else {
                 return; // Unsupported format
             }
             config.load();
@@ -49,5 +52,4 @@ public class ConfigSync {
             registerConfigToCheck(filename);
         }
     }
-
 }
