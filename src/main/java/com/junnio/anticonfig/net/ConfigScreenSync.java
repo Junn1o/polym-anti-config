@@ -3,6 +3,7 @@ package com.junnio.anticonfig.net;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.config.ModConfig;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -39,7 +40,9 @@ public class ConfigScreenSync {
                             fileConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
                         } else if (filename.endsWith(".toml")) {
                             fileConfig = FileConfig.of(configPath, TomlFormat.instance());
-                        } else {
+                        } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
+                            fileConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
+                        }else {
                             LOGGER.warn("Unsupported config format for file: {}", filename);
                             continue;
                         }
@@ -63,7 +66,7 @@ public class ConfigScreenSync {
 
                 if (mismatch) {
                     String files = mismatched.substring(0, mismatched.length() - 2);
-                    context.player().sendMessage(Text.literal("§cConfig mismatch detected! Please make sure these configs match the server: " + files));
+                    //context.player().sendMessage(Text.literal("§cConfig mismatch detected! Please make sure these configs match the server: " + files));
                     // Optionally kick the player if configs don't match
                     context.player().networkHandler.disconnect(Text.literal("Config mismatch! Please make sure these configs match the server: " + files));
                 }

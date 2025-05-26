@@ -3,16 +3,13 @@ package com.junnio.anticonfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.junnio.anticonfig.config.ConfigSync;
-import com.junnio.anticonfig.config.ModConfig;
-import com.junnio.anticonfig.net.ConfigScreenSync;
+import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.net.ConfigSyncPayload;
-import me.shedaniel.clothconfig2.api.ConfigScreen;
+import com.junnio.anticonfig.net.parser.Json5Parser;
+import com.junnio.anticonfig.net.parser.PropertiesParser;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.network.PacketByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +43,38 @@ public class ConfigScreenHandler {
                     FileConfig config;
                     if (filename.endsWith(".json")) {
                         config = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                        config.load();
+                        configsToSync.put(filename, config.valueMap().toString());
                     } else if (filename.endsWith(".toml")) {
                         config = FileConfig.of(configPath, TomlFormat.instance());
-                    } else {
+                        config.load();
+                        configsToSync.put(filename, config.valueMap().toString());
+                    } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
+                        config = FileConfig.of(configPath, YamlFormat.defaultInstance());
+                        config.load();
+                        configsToSync.put(filename, config.valueMap().toString());
+                    } else if (filename.endsWith(".json5")) {
+                        try {
+                            String serverContent;
+                            serverContent = Json5Parser.json5ToString(configPath);
+                            System.out.println("Server content: " + serverContent);
+                            configsToSync.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to parse json5 file: " + filename, e);
+                            continue;
+                        }
+                    }else if (filename.endsWith(".properties")) {
+                        try {
+                            String serverContent = PropertiesParser.propertiesToString(configPath);
+                            configsToSync.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to parse properties file: " + filename, e);
+                            continue;
+                        }
+                    }
+                    else {
                         continue;
                     }
-                    config.load();
-                    configsToSync.put(filename, config.valueMap().toString());
                 }
             }
 

@@ -1,5 +1,6 @@
 package com.junnio.anticonfig.net;
 
+import com.junnio.anticonfig.Anticonfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 public record ConfigSyncPayload(Map<String, String> configs) implements CustomPayload {
     public static final CustomPayload.Id<ConfigSyncPayload> ID =
-            new CustomPayload.Id<>(Identifier.of("anticonfig", "config_sync"));
+            new CustomPayload.Id<>(Identifier.of(Anticonfig.MODID, "config_sync"));
     private static final PacketCodec<RegistryByteBuf, List<String>> CONFIG_FILES_CODEC =
             PacketCodecs.collection(ArrayList::new, PacketCodecs.STRING);
 
