@@ -1,10 +1,9 @@
-package com.junnio.anticonfig.net;
+package com.junnio.anticonfig.net.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.marhali.json5.Json5;
 import de.marhali.json5.Json5Element;
 import de.marhali.json5.Json5Object;
-import de.marhali.json5.Json5Options;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

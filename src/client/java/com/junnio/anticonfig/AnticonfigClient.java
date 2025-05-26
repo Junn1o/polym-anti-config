@@ -4,8 +4,9 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.yaml.YamlFormat;
-import com.junnio.anticonfig.net.Json5Parser;
+import com.junnio.anticonfig.net.parser.Json5Parser;
 import com.junnio.anticonfig.net.NetworkManager;
+import com.junnio.anticonfig.net.parser.PropertiesParser;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
@@ -63,7 +64,16 @@ public class AnticonfigClient implements ClientModInitializer {
 							LOGGER.error("Failed to parse json5 file: " + filename, e);
 							continue;
 						}
-					}else {
+					}else if (filename.endsWith(".properties")) {
+						try {
+							String serverContent = PropertiesParser.propertiesToString(configPath);
+							clientConfigs.put(filename, serverContent);
+						} catch (Exception e) {
+							LOGGER.error("Failed to parse properties file: " + filename, e);
+							continue;
+						}
+					}
+					else {
 						continue;
 					}
 				} catch (Exception e) {

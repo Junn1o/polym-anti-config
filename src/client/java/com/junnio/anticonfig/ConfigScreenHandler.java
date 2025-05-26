@@ -5,7 +5,8 @@ import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.net.ConfigSyncPayload;
-import com.junnio.anticonfig.net.Json5Parser;
+import com.junnio.anticonfig.net.parser.Json5Parser;
+import com.junnio.anticonfig.net.parser.PropertiesParser;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
@@ -62,7 +63,16 @@ public class ConfigScreenHandler {
                             LOGGER.error("Failed to parse json5 file: " + filename, e);
                             continue;
                         }
-                    }else {
+                    }else if (filename.endsWith(".properties")) {
+                        try {
+                            String serverContent = PropertiesParser.propertiesToString(configPath);
+                            configsToSync.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to parse properties file: " + filename, e);
+                            continue;
+                        }
+                    }
+                    else {
                         continue;
                     }
                 }

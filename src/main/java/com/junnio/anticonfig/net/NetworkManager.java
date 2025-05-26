@@ -6,6 +6,8 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.yaml.YamlFormat;
 import com.junnio.anticonfig.Anticonfig;
 import com.junnio.anticonfig.config.ModConfig;
+import com.junnio.anticonfig.net.parser.Json5Parser;
+import com.junnio.anticonfig.net.parser.PropertiesParser;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
@@ -56,6 +58,14 @@ public class NetworkManager {
                             serverConfigs.put(filename, serverContent);
                         } catch (Exception e) {
                             LOGGER.error("Failed to parse json5 file: " + filename, e);
+                        }
+                    }else if (filename.endsWith(".properties")) {
+                        try {
+                            String serverContent = PropertiesParser.propertiesToString(configPath);
+                            serverConfigs.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to parse properties file: " + filename, e);
+                            continue;
                         }
                     }
                     else {
@@ -109,12 +119,19 @@ public class NetworkManager {
                         } else if (filename.endsWith(".json5")) {
                             try {
                                 serverContent = Json5Parser.json5ToString(configPath);
-                                System.out.println("Server content: " + serverContent);
                             } catch (Exception e) {
                                 LOGGER.error("Failed to parse json5 file: " + filename, e);
                                 continue;
                             }
-                        } else {
+                        } else if (filename.endsWith(".properties")) {
+                            try {
+                                serverContent = PropertiesParser.propertiesToString(configPath);
+                            } catch (Exception e) {
+                                LOGGER.error("Failed to parse properties file: " + filename, e);
+                                continue;
+                            }
+                        }
+                        else {
                             continue;
                         }
 
