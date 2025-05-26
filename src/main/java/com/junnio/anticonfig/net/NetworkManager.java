@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.yaml.YamlFormat;
-import com.junnio.anticonfig.config.ConfigSync;
+import com.junnio.anticonfig.Anticonfig;
 import com.junnio.anticonfig.config.ModConfig;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ import java.util.Map;
 
 public class NetworkManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
-
+    public static final Identifier CONFIG_SYNC_ID = Identifier.of(Anticonfig.MODID, "config_sync");
     public static void init() {
         // Server sends configs to client during login
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
@@ -37,27 +38,40 @@ public class NetworkManager {
                     FileConfig fileConfig;
                     if (filename.endsWith(".json")) {
                         fileConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                        fileConfig.load();
+                        serverConfigs.put(filename, fileConfig.valueMap().toString());
                     } else if (filename.endsWith(".toml")) {
                         fileConfig = FileConfig.of(configPath, TomlFormat.instance());
+                        fileConfig.load();
+                        serverConfigs.put(filename, fileConfig.valueMap().toString());
                     } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
                         fileConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
-                    }else {
-                        LOGGER.warn("Unsupported config format for file: {}", filename);
-                        continue;
+                        fileConfig.load();
+                        serverConfigs.put(filename, fileConfig.valueMap().toString());
+                    }else if (filename.endsWith(".json5")) {
+                        try {
+                            String serverContent;
+                            serverContent = Json5Parser.json5ToString(configPath);
+                            System.out.println("Server content: " + serverContent);
+                            serverConfigs.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to parse json5 file: " + filename, e);
+                        }
                     }
-                    fileConfig.load();
-                    serverConfigs.put(filename, fileConfig.valueMap().toString());
+                    else {
+                        LOGGER.warn("Unsupported config format for file: {}", filename);
+                    }
                 }
             }
 
             // Send server configs to client
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeMap(serverConfigs, PacketByteBuf::writeString, PacketByteBuf::writeString);
-            sender.sendPacket(ConfigSync.CONFIG_SYNC_ID, buf);
+            sender.sendPacket(NetworkManager.CONFIG_SYNC_ID, buf);
         });
 
         // Server receives and validates client configs
-        ServerLoginNetworking.registerGlobalReceiver(ConfigSync.CONFIG_SYNC_ID, (server, handler, understood, buf, synchronizer, responseSender) -> {
+        ServerLoginNetworking.registerGlobalReceiver(NetworkManager.CONFIG_SYNC_ID, (server, handler, understood, buf, synchronizer, responseSender) -> {
             if (!understood) {
                 LOGGER.warn("Client doesn't have the mod installed");
                 return;
@@ -79,19 +93,32 @@ public class NetworkManager {
                     Path configPath = configDir.resolve(filename);
 
                     if (Files.exists(configPath)) {
-                        FileConfig serverConfig;
+                        String serverContent;
                         if (filename.endsWith(".json")) {
-                            serverConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                            FileConfig serverConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                            serverConfig.load();
+                            serverContent = serverConfig.valueMap().toString();
                         } else if (filename.endsWith(".toml")) {
-                            serverConfig = FileConfig.of(configPath, TomlFormat.instance());
-                        } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")){
-                            serverConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
-                        }else {
+                            FileConfig serverConfig = FileConfig.of(configPath, TomlFormat.instance());
+                            serverConfig.load();
+                            serverContent = serverConfig.valueMap().toString();
+                        } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")) {
+                            FileConfig serverConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
+                            serverConfig.load();
+                            serverContent = serverConfig.valueMap().toString();
+                        } else if (filename.endsWith(".json5")) {
+                            try {
+                                serverContent = Json5Parser.json5ToString(configPath);
+                                System.out.println("Server content: " + serverContent);
+                            } catch (Exception e) {
+                                LOGGER.error("Failed to parse json5 file: " + filename, e);
+                                continue;
+                            }
+                        } else {
                             continue;
                         }
-                        serverConfig.load();
 
-                        if (!serverConfig.valueMap().toString().equals(clientContent)) {
+                        if (!serverContent.equals(clientContent)) {
                             mismatch = true;
                             mismatched.append(filename).append(", ");
                         }

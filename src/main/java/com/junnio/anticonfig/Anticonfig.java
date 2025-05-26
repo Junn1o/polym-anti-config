@@ -1,6 +1,5 @@
 package com.junnio.anticonfig;
 
-import com.junnio.anticonfig.config.ConfigSync;
 import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.net.ConfigScreenSync;
 import com.junnio.anticonfig.net.NetworkManager;
@@ -17,7 +16,6 @@ public class Anticonfig implements ModInitializer {
 	public void onInitialize() {
 		ModConfig.load();
 		NetworkManager.init();
-		ConfigSync.registerConfigsFromModConfig();
 		ConfigScreenSync.initServer();
 	}
 

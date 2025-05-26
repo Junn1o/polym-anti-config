@@ -66,7 +66,7 @@ public class ConfigScreenSync {
 
                 if (mismatch) {
                     String files = mismatched.substring(0, mismatched.length() - 2);
-                    context.player().sendMessage(Text.literal("§cConfig mismatch detected! Please make sure these configs match the server: " + files));
+                    //context.player().sendMessage(Text.literal("§cConfig mismatch detected! Please make sure these configs match the server: " + files));
                     // Optionally kick the player if configs don't match
                     context.player().networkHandler.disconnect(Text.literal("Config mismatch! Please make sure these configs match the server: " + files));
                 }
