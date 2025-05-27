@@ -8,9 +8,7 @@ import com.junnio.anticonfig.Anticonfig;
 import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.net.parser.Json5Parser;
 import com.junnio.anticonfig.net.parser.PropertiesParser;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
+import net.fabricmc.fabric.api.networking.v1.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
@@ -23,10 +21,13 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+import static net.fabricmc.fabric.impl.networking.NetworkingImpl.LOGGER;
+
 public class NetworkManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
     public static final Identifier CONFIG_SYNC_ID = Identifier.of(Anticonfig.MODID, "config_sync");
     public static void init() {
+        PayloadTypeRegistry.playC2S().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
         // Server sends configs to client during login
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             Map<String, String> serverConfigs = new HashMap<>();
@@ -146,6 +147,68 @@ public class NetworkManager {
                 String files = mismatched.substring(0, mismatched.length() - 2);
                 handler.disconnect(Text.literal("Config mismatch! Please make sure these configs match the server: " + files));
             }
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(ConfigSyncPayload.ID, (payload, context) -> {
+            context.server().execute(() -> {
+                boolean mismatch = false;
+                StringBuilder mismatched = new StringBuilder();
+                Map<String, String> serverConfigs = new HashMap<>();
+                ModConfig config = ModConfig.getInstance();
+
+                // Get current server configs
+                for (String filename : config.getConfigFilesToCheck()) {
+                    Path configPath = ModConfig.resolveConfigPath(filename);
+                    if (Files.exists(configPath)) {
+                        try {
+                            String serverContent;
+                            if (filename.endsWith(".json")) {
+                                FileConfig fileConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                                fileConfig.load();
+                                serverContent = fileConfig.valueMap().toString();
+                            } else if (filename.endsWith(".toml")) {
+                                FileConfig fileConfig = FileConfig.of(configPath, TomlFormat.instance());
+                                fileConfig.load();
+                                serverContent = fileConfig.valueMap().toString();
+                            } else if(filename.endsWith(".yaml") || filename.endsWith(".yml")) {
+                                FileConfig fileConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
+                                fileConfig.load();
+                                serverContent = fileConfig.valueMap().toString();
+                            } else if (filename.endsWith(".json5")) {
+                                serverContent = Json5Parser.json5ToString(configPath);
+                            } else if (filename.endsWith(".properties")) {
+                                serverContent = PropertiesParser.propertiesToString(configPath);
+                            } else {
+                                continue;
+                            }
+                            serverConfigs.put(filename, serverContent);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to read server config: " + filename, e);
+                            continue;
+                        }
+                    }
+                }
+
+                // Compare with client configs
+                Map<String, String> clientConfigs = payload.configs();
+                for (Map.Entry<String, String> entry : serverConfigs.entrySet()) {
+                    String filename = entry.getKey();
+                    String serverContent = entry.getValue();
+                    String clientContent = clientConfigs.get(filename);
+
+                    if (clientContent == null || !serverContent.equals(clientContent)) {
+                        mismatch = true;
+                        mismatched.append(filename).append(", ");
+                    }
+                }
+
+                if (mismatch) {
+                    String files = mismatched.substring(0, mismatched.length() - 2);
+                    context.player().networkHandler.disconnect(
+                            Text.literal("Config mismatch! Please make sure these configs match the server: " + files)
+                    );
+                }
+            });
         });
     }
 }
