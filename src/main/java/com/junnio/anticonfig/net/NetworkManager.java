@@ -35,7 +35,7 @@ public class NetworkManager {
             // Load server configs based on ModConfig
             ModConfig config = ModConfig.getInstance();
             for (String filename : config.getConfigFilesToCheck()) {
-                Path configPath = configDir.resolve(filename);
+                Path configPath = ModConfig.resolveConfigPath(filename);
                 if (Files.exists(configPath)) {
                     FileConfig fileConfig;
                     if (filename.endsWith(".json")) {
@@ -100,8 +100,7 @@ public class NetworkManager {
             for (String filename : config.getConfigFilesToCheck()) {
                 if (clientConfigs.containsKey(filename)) {
                     String clientContent = clientConfigs.get(filename);
-                    Path configPath = configDir.resolve(filename);
-
+                    Path configPath = ModConfig.resolveConfigPath(filename);
                     if (Files.exists(configPath)) {
                         String serverContent;
                         if (filename.endsWith(".json")) {

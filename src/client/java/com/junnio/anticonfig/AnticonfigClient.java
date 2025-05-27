@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.json.JsonFormat;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.yaml.YamlFormat;
+import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.net.parser.Json5Parser;
 import com.junnio.anticonfig.net.NetworkManager;
 import com.junnio.anticonfig.net.parser.PropertiesParser;
@@ -39,7 +40,7 @@ public class AnticonfigClient implements ClientModInitializer {
 
 			// Read only the configs that server requested
 			for (String filename : serverConfigs.keySet()) {
-				Path configPath = configDir.resolve(filename);
+				Path configPath = ModConfig.resolveConfigPath(filename);
 				try {
 					FileConfig config;
 					if (filename.endsWith(".json")) {
