@@ -72,6 +72,7 @@ public class ModConfig {
     public static Path resolveConfigPath(String relativePath) {
         return FabricLoader.getInstance().getConfigDir().resolve(relativePath);
     }
+
     public void validateAndFixPaths() {
         List<String> validPaths = new ArrayList<>();
         for (String path : configFilesToCheck) {
