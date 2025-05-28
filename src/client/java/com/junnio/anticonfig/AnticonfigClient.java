@@ -72,7 +72,6 @@ public class AnticonfigClient implements ClientModInitializer {
                         } else {
                             continue;
                         }
-                        System.out.println("Client config: " + filename + " = " + clientContent);
                         clientConfigs.put(filename, clientContent);
                     } catch (Exception e) {
                         LOGGER.warn("Failed to read client config: {}", filename);

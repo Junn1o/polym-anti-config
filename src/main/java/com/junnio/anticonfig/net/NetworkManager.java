@@ -133,23 +133,29 @@ public class NetworkManager {
                             } else {
                                 continue;
                             }
-                            System.out.println("Client validate: " + filename + " = " + clientContent);
-                            System.out.println("Server validate: " + filename + " = " + serverContent);
                         } catch (Exception e) {
                             LOGGER.error("Failed to read server config: " + filename, e);
                             continue;
                         }
                         if (!serverContent.equals(clientContent)) {
                             mismatch = true;
-                            mismatched.append(filename).append(", ");
+                            try {
+                                String diff = ConfigDiffUtil.findDifferences(filename, serverContent, clientContent);
+                                if (diff != null) {
+                                    mismatched.append(diff);
+                                }
+                            } catch (Exception e) {
+                                mismatched.append(filename).append(" (failed to compare configs), ");
+                            }
                         }
                     }
                 }
             }
 
             if (mismatch) {
-                String files = mismatched.substring(0, mismatched.length() - 2);
-                handler.disconnect(Text.literal("Config mismatch! Please make sure these configs match the server: " + files));
+                // Remove the trailing comma and space if present
+                String message = "Config mismatch!\n" + mismatched.toString();
+                handler.disconnect(Text.literal(message));
             }
         });
 
@@ -167,7 +173,7 @@ public class NetworkManager {
                         try {
                             String serverContent;
                             if (filename.endsWith(".json")) {
-                                FileConfig fileConfig = FileConfig.of(configPath, JsonFormat.minimalInstance());
+                                FileConfig fileConfig = FileConfig.of(configPath, JsonFormat.fancyInstance());
                                 fileConfig.load();
                                 serverContent = NightConfigParser.configToString(fileConfig);
                             } else if (filename.endsWith(".toml")) {
