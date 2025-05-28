@@ -38,6 +38,9 @@ public class ModConfig {
     }
 
     public static void load() {
+        if (INSTANCE != null) {
+            INSTANCE.validateAndFixPaths();
+        }
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(CONFIG_FILE);
         if (Files.exists(configPath)) {
             try {
@@ -64,4 +67,31 @@ public class ModConfig {
             LOGGER.error("Failed to save config file", e);
         }
     }
+
+    // Add helper method to resolve config paths
+    public static Path resolveConfigPath(String relativePath) {
+        return FabricLoader.getInstance().getConfigDir().resolve(relativePath);
+    }
+
+    public void validateAndFixPaths() {
+        List<String> validPaths = new ArrayList<>();
+        for (String path : configFilesToCheck) {
+            // Normalize path separators
+            String normalizedPath = path.replace('\\', '/');
+
+            // Remove any leading slashes
+            if (normalizedPath.startsWith("/")) {
+                normalizedPath = normalizedPath.substring(1);
+            }
+
+            // Ensure path doesn't try to escape config directory
+            if (!normalizedPath.contains("..")) {
+                validPaths.add(normalizedPath);
+            } else {
+                LOGGER.warn("Ignoring invalid config path that tries to escape config directory: {}", path);
+            }
+        }
+        configFilesToCheck = validPaths;
+    }
+
 }
