@@ -1,4 +1,4 @@
-package com.junnio.anticonfig.net.parser;
+package com.junnio.anticonfig.util.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
