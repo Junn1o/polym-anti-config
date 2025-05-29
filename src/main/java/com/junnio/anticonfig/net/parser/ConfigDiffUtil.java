@@ -14,6 +14,7 @@ public class ConfigDiffUtil {
     private static final String GREEN = "§a"; // Color code for green
     private static final String RED = "§c";   // Color code for red
     private static final String RESET = "§r";  // Reset formatting
+    private static final String YELLOW = "§e";
 
     public static String findDifferences(String filename, String serverContent, String clientContent) throws Exception {
         JsonNode serverJson = MAPPER.readTree(serverContent);
@@ -30,7 +31,7 @@ public class ConfigDiffUtil {
         // Left align the filename with a line break
         result.append(filename).append("\n");
         for (String diff : differences) {
-            result.append("  ").append(diff).append("\n");
+            result.append(diff).append("\n");
         }
         return result.toString();
     }
@@ -60,7 +61,8 @@ public class ConfigDiffUtil {
                     if (serverValue.isObject() && clientValue.isObject()) {
                         findDifferences(currentPath, serverValue, clientValue, differences);
                     } else {
-                        differences.add(currentPath + ": " +
+                        differences.add(
+                                YELLOW+currentPath + ": " +
                                 GREEN + "server:" + serverValue + RESET + ", " +
                                 RED + "client:" + clientValue + RESET);
                     }
