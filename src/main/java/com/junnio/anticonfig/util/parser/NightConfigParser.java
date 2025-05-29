@@ -1,5 +1,5 @@
 
-package com.junnio.anticonfig.net.parser;
+package com.junnio.anticonfig.util.parser;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;

@@ -1,4 +1,4 @@
-package com.junnio.anticonfig.net.parser;
+package com.junnio.anticonfig.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,9 +62,9 @@ public class ConfigDiffUtil {
                         findDifferences(currentPath, serverValue, clientValue, differences);
                     } else {
                         differences.add(
-                                YELLOW+currentPath + ": " +
-                                GREEN + "server:" + serverValue + RESET + ", " +
-                                RED + "client:" + clientValue + RESET);
+                                YELLOW + currentPath + ": " +
+                                        GREEN + "server:" + serverValue + RESET + ", " +
+                                        RED + "client:" + clientValue + RESET);
                     }
                 }
             }
