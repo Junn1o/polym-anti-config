@@ -4,6 +4,7 @@ import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.net.ConfigSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +41,10 @@ public class ConfigSyncHelper {
     }
 
     public static void onConfigScreenClose() {
-        Map<String, String> configsToSync = readConfigsForSync(lastServerConfigs.keySet());
-        ConfigSyncPayload payload = new ConfigSyncPayload(configsToSync);
-        ClientPlayNetworking.send(payload);
+        if (MinecraftClient.getInstance().player != null) {
+            Map<String, String> configsToSync = readConfigsForSync(lastServerConfigs.keySet());
+            ConfigSyncPayload payload = new ConfigSyncPayload(configsToSync);
+            ClientPlayNetworking.send(payload);
+        }
     }
 }
