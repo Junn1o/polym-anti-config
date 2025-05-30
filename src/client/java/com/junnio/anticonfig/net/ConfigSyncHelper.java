@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigSyncHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger("ConfigSyncHelper");
     private static Map<String, String> lastServerConfigs = new HashMap<>();
 
     public static Map<String, String> readConfigsForSync(Iterable<String> configsToRead) {

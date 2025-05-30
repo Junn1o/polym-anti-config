@@ -2,6 +2,7 @@ package com.junnio.anticonfig;
 
 import com.junnio.anticonfig.net.NetworkManager;
 import com.junnio.anticonfig.net.ConfigSyncHelper;
+import com.terraformersmc.modmenu.gui.ModsScreen;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
@@ -23,6 +24,11 @@ public class AnticonfigClient implements ClientModInitializer {
         });
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof ClothConfigScreen) {
+                ScreenEvents.remove(screen).register((closedScreen) -> ConfigSyncHelper.onConfigScreenClose());
+            }
+        });
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (screen instanceof ModsScreen) {
                 ScreenEvents.remove(screen).register((closedScreen) -> ConfigSyncHelper.onConfigScreenClose());
             }
         });

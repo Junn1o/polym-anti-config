@@ -1,7 +1,6 @@
 package com.junnio.anticonfig.util;
 
 import com.junnio.anticonfig.config.ModConfig;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
