@@ -1,7 +1,7 @@
-package com.junnio.anticonfig.util;
+package com.junnio.anticonfig.net;
 
 import com.junnio.anticonfig.config.ModConfig;
-import com.junnio.anticonfig.net.ConfigSyncPayload;
+import com.junnio.anticonfig.util.ConfigFileReader;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;

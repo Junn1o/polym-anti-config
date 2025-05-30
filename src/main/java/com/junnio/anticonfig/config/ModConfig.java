@@ -17,11 +17,7 @@ public class ModConfig {
     private static final String CONFIG_FILE = "anticonfig.json";
     private static ModConfig INSTANCE;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-    // Configuration fields
     private List<String> configFilesToCheck = new ArrayList<>();
-
-    // Default constructor
     public ModConfig() {
 
     }
@@ -67,8 +63,6 @@ public class ModConfig {
             LOGGER.error("Failed to save config file", e);
         }
     }
-
-    // Add helper method to resolve config paths
     public static Path resolveConfigPath(String relativePath) {
         return FabricLoader.getInstance().getConfigDir().resolve(relativePath);
     }
@@ -76,15 +70,10 @@ public class ModConfig {
     public void validateAndFixPaths() {
         List<String> validPaths = new ArrayList<>();
         for (String path : configFilesToCheck) {
-            // Normalize path separators
             String normalizedPath = path.replace('\\', '/');
-
-            // Remove any leading slashes
             if (normalizedPath.startsWith("/")) {
                 normalizedPath = normalizedPath.substring(1);
             }
-
-            // Ensure path doesn't try to escape config directory
             if (!normalizedPath.contains("..")) {
                 validPaths.add(normalizedPath);
             } else {

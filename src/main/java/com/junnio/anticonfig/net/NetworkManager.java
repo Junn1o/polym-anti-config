@@ -5,6 +5,7 @@ import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.util.ConfigValidator;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class NetworkManager {
                 );
 
                 if (result.hasMismatch()) {
-                    context.player().networkHandler.disconnect(result.getDisconnectMessage());
+                    context.player().networkHandler.disconnect(result.notifyBypassMessage());
                 }
             });
         });
