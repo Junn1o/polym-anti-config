@@ -3,7 +3,7 @@
 	"id": "anticonfig",
 	"version": "${version}",
 	"name": "anticonfig",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "This mod is about preventing client bypass config of server",
 	"authors": [
 		"Me!"
 	],
