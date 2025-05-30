@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 public class Anticonfig implements ModInitializer {
 	public static final String MODID = "anticonfig";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
 	@Override
 	public void onInitialize() {
