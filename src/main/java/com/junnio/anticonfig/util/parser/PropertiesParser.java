@@ -1,28 +1,25 @@
 package com.junnio.anticonfig.util.parser;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.junnio.anticonfig.util.ConfigParserUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
-public class PropertiesParser {
+public final class PropertiesParser {
     public static String propertiesToString(Path filePath) throws Exception {
-        // Read properties file
         Properties properties = new Properties();
-        properties.load(Files.newBufferedReader(filePath));
-
-        // Convert Properties to Map
-        Map<String, Object> map = new HashMap<>();
-        for (String key : properties.stringPropertyNames()) {
-            map.put(key, properties.getProperty(key));
+        try (var reader = Files.newBufferedReader(filePath)) {
+            properties.load(reader);
         }
 
-        // Convert to JSON string for consistency with other config formats
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(map);
+        TreeMap<String, Object> map = new TreeMap<>();
+        for (String key : properties.stringPropertyNames()) {
+            String value = properties.getProperty(key);
+            map.put(key, ConfigParserUtils.normalizeValue(value));
+        }
+
+        return ConfigParserUtils.getMapper().writeValueAsString(map);
     }
 }
-

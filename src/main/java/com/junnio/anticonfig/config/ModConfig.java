@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ModConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
@@ -18,6 +20,11 @@ public class ModConfig {
     private static ModConfig INSTANCE;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private List<String> configFilesToCheck = new ArrayList<>();
+    private Map<String, Map<String, Object>> restrictedValues = new HashMap<>();
+    public Map<String, Map<String, Object>> getRestrictedValues() {
+        return restrictedValues;
+    }
+
     public ModConfig() {
 
     }
@@ -33,6 +40,9 @@ public class ModConfig {
         return configFilesToCheck;
     }
 
+    private void setupDefaultRestrictions() {
+    }
+
     public static void load() {
         if (INSTANCE != null) {
             INSTANCE.validateAndFixPaths();
@@ -42,6 +52,7 @@ public class ModConfig {
             try {
                 String json = Files.readString(configPath);
                 INSTANCE = GSON.fromJson(json, ModConfig.class);
+                INSTANCE.setupDefaultRestrictions(); // Add this line
                 LOGGER.info("Loaded AntiConfig config");
             } catch (IOException e) {
                 LOGGER.error("Failed to read config file", e);
@@ -49,9 +60,11 @@ public class ModConfig {
             }
         } else {
             INSTANCE = new ModConfig();
+            INSTANCE.setupDefaultRestrictions(); // Add this line
             save();
         }
     }
+
 
     public static void save() {
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(CONFIG_FILE);
