@@ -77,58 +77,66 @@ public class ConfigValidator {
     }
 
     private static boolean validatePropertyBasedContent(String content, Map<String, Object> restrictions) {
-        LOGGER.debug("Validating property-based content: {}", content);
+        try {
+            JsonNode contentNode = JSON_MAPPER.readTree(content);
 
-        for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
-            String key = restriction.getKey();
-            Object expectedValue = restriction.getValue();
+            for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
+                String path = restriction.getKey();
+                Object expectedValue = restriction.getValue();
 
-            // For HOCON/conf files, try both with and without quotes for number values
-            String strValue = String.valueOf(expectedValue);
-            String unquotedPattern = key + "=" + strValue;
-            String quotedPattern = key + "=\"" + strValue + "\"";
+                // For INI files, handle section.key format
+                String[] parts = path.split("\\.");
+                JsonNode currentNode = contentNode;
 
-            boolean found = content.lines()
-                    .map(String::trim)
-                    .filter(line -> !line.startsWith("#"))
-                    .anyMatch(line -> line.equals(unquotedPattern) || line.equals(quotedPattern));
+                for (String part : parts) {
+                    if (!currentNode.has(part)) {
+                        LOGGER.info("Property not found: {}", path);
+                        return false;
+                    }
+                    currentNode = currentNode.get(part);
+                }
 
-            if (!found) {
-                LOGGER.info("Property not found or mismatch: {} (expected: {})", key, expectedValue);
-                LOGGER.debug("Looked for patterns: '{}' or '{}'", unquotedPattern, quotedPattern);
-                return false;
+                if (!matchesValue(currentNode, expectedValue)) {
+                    LOGGER.info("Property mismatch: {} - expected: {}, actual: {}",
+                            path, expectedValue, currentNode);
+                    return false;
+                }
             }
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Error parsing property content", e);
+            return false;
         }
-        return true;
     }
 
+
+
     private static boolean validateTxtContent(String content, Map<String, Object> restrictions) {
-        Map<String, String> txtMap = new TreeMap<>();
+        try {
+            // Parse the JSON content since TxtConfigParser returns JSON
+            JsonNode contentNode = JSON_MAPPER.readTree(content);
 
-        // Parse TXT content into map (assuming key:value format)
-        content.lines()
-                .map(String::trim)
-                .filter(line -> !line.isEmpty() && !line.startsWith("#"))
-                .forEach(line -> {
-                    int colonIndex = line.indexOf(':');
-                    if (colonIndex > 0) {
-                        String key = line.substring(0, colonIndex).trim();
-                        String value = line.substring(colonIndex + 1).trim();
-                        txtMap.put(key, value);
-                    }
-                });
+            for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
+                String key = restriction.getKey();
+                Object expectedValue = restriction.getValue();
 
-        // Validate restrictions
-        for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
-            String key = restriction.getKey();
-            Object expectedValue = restriction.getValue();
-            String actualValue = txtMap.get(key);
+                if (!contentNode.has(key)) {
+                    LOGGER.info("Key not found in txt config: {}", key);
+                    return false;
+                }
 
-            if (actualValue == null || matchesPropertyValue(actualValue, expectedValue)) {
-                return false;
+                JsonNode actualValue = contentNode.get(key);
+                if (!matchesValue(actualValue, expectedValue)) {
+                    LOGGER.info("Value mismatch in txt config: {} - expected: {}, actual: {}",
+                            key, expectedValue, actualValue);
+                    return false;
+                }
             }
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Error validating txt content", e);
+            return false;
         }
-        return true;
     }
 
     private static boolean validateJsonBasedContent(JsonNode node, Map<String, Object> restrictions) {
@@ -141,61 +149,30 @@ public class ConfigValidator {
             JsonNode currentNode = node;
 
             for (String part : pathParts) {
-                if (currentNode == null || !currentNode.has(part)) {
-                    LOGGER.info("Path {} not found", path);
+                if (currentNode == null) {
+                    LOGGER.info("Path {} not found (null node)", path);
                     return false;
                 }
-                currentNode = currentNode.get(part);
+                // Handle array indices
+                if (part.matches("\\d+")) {
+                    int index = Integer.parseInt(part);
+                    if (!currentNode.isArray() || currentNode.size() <= index) {
+                        LOGGER.info("Invalid array access at path {}", path);
+                        return false;
+                    }
+                    currentNode = currentNode.get(index);
+                } else {
+                    if (!currentNode.has(part)) {
+                        LOGGER.info("Path {} not found at part {}", path, part);
+                        return false;
+                    }
+                    currentNode = currentNode.get(part);
+                }
             }
 
-            if (!validateJsonNode(currentNode, expectedValue)) {
+            if (!matchesValue(currentNode, expectedValue)) {
                 LOGGER.info("Value mismatch at {}: expected {}, got {}",
                         path, expectedValue, currentNode);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean validateJsonNode(JsonNode node, Object expectedValue) {
-        // Handle special cases first
-        if (node.isObject() && node.has("enable")) {
-            // For objects with 'enable' field, check the enable value
-            return matchesValue(node.get("enable"), expectedValue);
-        }
-
-        if (expectedValue instanceof Map && node.isObject()) {
-            // Handle nested object validation
-            @SuppressWarnings("unchecked")
-            Map<String, Object> expectedMap = (Map<String, Object>) expectedValue;
-            return validateComplexValue(node, expectedMap);
-        }
-
-        if (expectedValue instanceof List && node.isArray()) {
-            // Handle array validation
-            return validateArrayValue(node, (List<?>) expectedValue);
-        }
-
-        // Regular value validation
-        return matchesValue(node, expectedValue);
-    }
-    private static boolean validateComplexValue(JsonNode node, Map<String, Object> expectedMap) {
-        for (Map.Entry<String, Object> entry : expectedMap.entrySet()) {
-            if (!node.has(entry.getKey()) ||
-                    !matchesValue(node.get(entry.getKey()), entry.getValue())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean validateArrayValue(JsonNode arrayNode, List<?> expectedList) {
-        if (arrayNode.size() != expectedList.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < arrayNode.size(); i++) {
-            if (!matchesValue(arrayNode.get(i), expectedList.get(i))) {
                 return false;
             }
         }
@@ -224,6 +201,10 @@ public class ConfigValidator {
         return !actualValue.equals(expectedValue.toString());
     }
     private static boolean matchesValue(JsonNode node, Object expectedValue) {
+        if (node == null || expectedValue == null) {
+            return node == null && expectedValue == null;
+        }
+
         if (expectedValue instanceof Boolean) {
             return node.isBoolean() && node.asBoolean() == (Boolean) expectedValue;
         } else if (expectedValue instanceof Number) {
@@ -235,9 +216,21 @@ public class ConfigValidator {
             return false;
         } else if (expectedValue instanceof String) {
             return node.isTextual() && node.asText().equals(expectedValue);
+        } else if (expectedValue instanceof List) {
+            if (!node.isArray()) return false;
+            List<?> expectedList = (List<?>) expectedValue;
+            if (node.size() != expectedList.size()) return false;
+
+            for (int i = 0; i < expectedList.size(); i++) {
+                if (!matchesValue(node.get(i), expectedList.get(i))) {
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }
+
 
     public static class ValidationResult {
         private final boolean mismatch;
