@@ -1,7 +1,7 @@
-package com.junnio.anticonfig;
+package com.junnio.anticonfig.client;
 
+import com.junnio.anticonfig.client.net.ConfigSyncHelper;
 import com.junnio.anticonfig.net.NetworkManager;
-import com.junnio.anticonfig.net.ConfigSyncHelper;
 import com.terraformersmc.modmenu.gui.ModsScreen;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;

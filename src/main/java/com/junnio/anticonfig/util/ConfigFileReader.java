@@ -19,7 +19,6 @@ public class ConfigFileReader {
         if (!Files.exists(configPath)) {
             return null;
         }
-
         try {
             if (filename.endsWith(".json")) {
                 FileConfig fileConfig = FileConfig.of(configPath, JsonFormat.fancyInstance());
@@ -35,13 +34,13 @@ public class ConfigFileReader {
                 return NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".json5")) {
                 return Json5Parser.json5ToString(configPath);
-            } else if (filename.endsWith(".hocon")) {
+            } else if (filename.endsWith(".hocon") || filename.endsWith(".conf")) {
                 FileConfig fileConfig = FileConfig.of(configPath, HoconFormat.instance());
                 fileConfig.load();
                 return NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".ini")) {
                 return IniParser.iniToString(configPath);
-            } else if (filename.endsWith(".properties") || filename.endsWith(".conf") || filename.endsWith(".cfg")) {
+            } else if (filename.endsWith(".properties") || filename.endsWith(".cfg")) {
                 return PropertiesParser.propertiesToString(configPath);
             } else if (filename.endsWith(".txt")) {
                 return TxtConfigParser.txtToString(configPath);

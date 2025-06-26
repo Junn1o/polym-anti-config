@@ -19,7 +19,7 @@
 			"com.junnio.anticonfig.Anticonfig"
 		],
 		"client": [
-			"com.junnio.anticonfig.AnticonfigClient"
+			"com.junnio.anticonfig.client.AnticonfigClient"
 		]
 	},
 	"mixins": [

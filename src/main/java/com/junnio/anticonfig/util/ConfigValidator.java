@@ -15,6 +15,7 @@ import java.util.*;
 public class ConfigValidator {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final Logger LOGGER = LoggerFactory.getLogger("ConfigValidator");
+
     public static ValidationResult validateConfigs(Map<String, String> clientConfigs, Iterable<String> configsToCheck) {
         boolean mismatch = false;
         Map<String, String> serverConfigs = new HashMap<>();
@@ -71,29 +72,30 @@ public class ConfigValidator {
 
     private static boolean isPropertyBasedFormat(String filename) {
         return filename.endsWith(".properties") ||
-                filename.endsWith(".conf") ||
                 filename.endsWith(".cfg") ||
                 filename.endsWith(".ini");
     }
 
     private static boolean validatePropertyBasedContent(String content, Map<String, Object> restrictions) {
-        // Convert content to properties for easier comparison
-        Properties props = new Properties();
-        try (StringReader reader = new StringReader(content)) {
-            props.load(reader);
-        } catch (IOException e) {
-            LOGGER.error("Error parsing property content", e);
-            return false;
-        }
+        LOGGER.debug("Validating property-based content: {}", content);
 
         for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
             String key = restriction.getKey();
             Object expectedValue = restriction.getValue();
-            String actualValue = props.getProperty(key);
 
-            if (actualValue == null || !matchesPropertyValue(actualValue, expectedValue)) {
-                LOGGER.info("Property mismatch: {} - expected: {}, actual: {}",
-                        key, expectedValue, actualValue);
+            // For HOCON/conf files, try both with and without quotes for number values
+            String strValue = String.valueOf(expectedValue);
+            String unquotedPattern = key + "=" + strValue;
+            String quotedPattern = key + "=\"" + strValue + "\"";
+
+            boolean found = content.lines()
+                    .map(String::trim)
+                    .filter(line -> !line.startsWith("#"))
+                    .anyMatch(line -> line.equals(unquotedPattern) || line.equals(quotedPattern));
+
+            if (!found) {
+                LOGGER.info("Property not found or mismatch: {} (expected: {})", key, expectedValue);
+                LOGGER.debug("Looked for patterns: '{}' or '{}'", unquotedPattern, quotedPattern);
                 return false;
             }
         }
@@ -122,7 +124,7 @@ public class ConfigValidator {
             Object expectedValue = restriction.getValue();
             String actualValue = txtMap.get(key);
 
-            if (actualValue == null || !matchesPropertyValue(actualValue, expectedValue)) {
+            if (actualValue == null || matchesPropertyValue(actualValue, expectedValue)) {
                 return false;
             }
         }
@@ -204,56 +206,31 @@ public class ConfigValidator {
     private static boolean matchesPropertyValue(String actualValue, Object expectedValue) {
         // Convert property string value to appropriate type for comparison
         if (expectedValue instanceof Boolean) {
-            return Boolean.parseBoolean(actualValue) == (Boolean) expectedValue;
+            return Boolean.parseBoolean(actualValue) != (Boolean) expectedValue;
         } else if (expectedValue instanceof Number) {
             try {
                 if (expectedValue instanceof Integer) {
-                    return Integer.parseInt(actualValue) == (Integer) expectedValue;
+                    return Integer.parseInt(actualValue) != (Integer) expectedValue;
                 } else if (expectedValue instanceof Long) {
-                    return Long.parseLong(actualValue) == (Long) expectedValue;
+                    return Long.parseLong(actualValue) != (Long) expectedValue;
                 } else if (expectedValue instanceof Double) {
-                    return Math.abs(Double.parseDouble(actualValue) -
-                            ((Number) expectedValue).doubleValue()) < 0.0001;
+                    return !(Math.abs(Double.parseDouble(actualValue) -
+                            ((Number) expectedValue).doubleValue()) < 0.0001);
                 }
             } catch (NumberFormatException e) {
-                return false;
+                return true;
             }
         }
-        return actualValue.equals(expectedValue.toString());
+        return !actualValue.equals(expectedValue.toString());
     }
-
-    private static List<JsonNode> findAllNodesWithKey(JsonNode node, String targetKey) {
-        List<JsonNode> results = new ArrayList<>();
-
-        if (node.isObject()) {
-            if (node.has(targetKey)) {
-                results.add(node.get(targetKey));
-            }
-            node.fields().forEachRemaining(entry ->
-                    results.addAll(findAllNodesWithKey(entry.getValue(), targetKey)));
-        } else if (node.isArray()) {
-            node.elements().forEachRemaining(element ->
-                    results.addAll(findAllNodesWithKey(element, targetKey)));
-        }
-
-        return results;
-    }
-
     private static boolean matchesValue(JsonNode node, Object expectedValue) {
         if (expectedValue instanceof Boolean) {
             return node.isBoolean() && node.asBoolean() == (Boolean) expectedValue;
         } else if (expectedValue instanceof Number) {
             if (node.isNumber()) {
-                // Handle different number types
-                if (expectedValue instanceof Integer) {
-                    return node.asInt() == (Integer) expectedValue;
-                } else if (expectedValue instanceof Long) {
-                    return node.asLong() == (Long) expectedValue;
-                } else if (expectedValue instanceof Double) {
-                    return Math.abs(node.asDouble() - (Double) expectedValue) < 0.0001;
-                } else if (expectedValue instanceof Float) {
-                    return Math.abs(node.asDouble() - (Float) expectedValue) < 0.0001;
-                }
+                double nodeValue = node.asDouble();
+                double expectedDouble = ((Number) expectedValue).doubleValue();
+                return Math.abs(nodeValue - expectedDouble) < 0.0001;
             }
             return false;
         } else if (expectedValue instanceof String) {
@@ -273,11 +250,12 @@ public class ConfigValidator {
             this.mismatchedConfigs = mismatchedConfigs;
         }
 
-
         public boolean hasMismatch() {
             return mismatch;
         }
-
+        public Set<String> getMismatchedConfigs() {
+            return mismatchedConfigs;
+        }
         public Text getDisconnectMessage() {
             Text startText = Text.translatable("anticonfig.text.startresult");
             StringBuilder configListBuilder = new StringBuilder("\n");
