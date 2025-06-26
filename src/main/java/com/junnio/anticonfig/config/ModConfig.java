@@ -2,6 +2,8 @@ package com.junnio.anticonfig.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.junnio.anticonfig.util.ConfigFormat;
+import com.junnio.anticonfig.util.ConfigParserUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +46,12 @@ public class ModConfig {
     }
 
     public static void load() {
-        if (INSTANCE != null) {
-            INSTANCE.validateAndFixPaths();
-        }
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(CONFIG_FILE);
         if (Files.exists(configPath)) {
             try {
                 String json = Files.readString(configPath);
                 INSTANCE = GSON.fromJson(json, ModConfig.class);
-                INSTANCE.setupDefaultRestrictions(); // Add this line
+                INSTANCE.validateConfig();
                 LOGGER.info("Loaded AntiConfig config");
             } catch (IOException e) {
                 LOGGER.error("Failed to read config file", e);
@@ -60,7 +59,6 @@ public class ModConfig {
             }
         } else {
             INSTANCE = new ModConfig();
-            INSTANCE.setupDefaultRestrictions(); // Add this line
             save();
         }
     }
@@ -94,6 +92,24 @@ public class ModConfig {
             }
         }
         configFilesToCheck = validPaths;
+    }
+    public void validateConfig() {
+        validateAndFixPaths();
+
+        // Validate restricted values format
+        for (Map.Entry<String, Map<String, Object>> entry : restrictedValues.entrySet()) {
+            String filename = entry.getKey();
+            Map<String, Object> restrictions = entry.getValue();
+
+            // Validate the format is supported
+            if (ConfigFormat.fromFilename(filename) == null) {
+                LOGGER.warn("Unsupported file format in restrictedValues: {}", filename);
+                continue;
+            }
+
+            // Validate the restrictions format
+            ConfigParserUtils.validateRestrictedValue(filename, restrictions);
+        }
     }
 
 }

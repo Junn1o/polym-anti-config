@@ -32,7 +32,7 @@ public class ConfigValidator {
                 serverConfigs.put(filename, serverContent);
                 String clientContent = clientConfigs.get(filename);
 
-                if (clientContent != null && !validateRestrictedValues(filename, clientContent, serverContent, restrictedValues)) {
+                if (clientContent != null && !validateConfig(filename, clientContent, serverContent, restrictedValues)) {
                     mismatch = true;
                     mismatchedConfigs.add(filename);
                 }
@@ -42,132 +42,68 @@ public class ConfigValidator {
         return new ValidationResult(mismatch, serverConfigs, mismatchedConfigs);
     }
 
-
-
-    private static boolean validateRestrictedValues(String filename, String clientContent, String serverContent,
-                                                    Map<String, Map<String, Object>> restrictedValues) {
+    private static boolean validateConfig(String filename, String clientContent, String serverContent,
+                                          Map<String, Map<String, Object>> restrictedValues) {
         try {
             if (!restrictedValues.containsKey(filename)) {
                 return serverContent.equals(clientContent);
             }
 
             LOGGER.info("Validating {} with content: {}", filename, clientContent);
-            Map<String, Object> fileRestrictions = restrictedValues.get(filename);
+            Map<String, Object> restrictions = restrictedValues.get(filename);
 
-            // Handle different file formats
-            if (isPropertyBasedFormat(filename)) {
-                return validatePropertyBasedContent(clientContent, fileRestrictions);
-            } else if (filename.endsWith(".txt")) {
-                return validateTxtContent(clientContent, fileRestrictions);
-            } else {
-                // Handle JSON-like formats (JSON, JSON5, YAML, TOML, HOCON)
-                JsonNode clientJson = JSON_MAPPER.readTree(clientContent);
-                return validateJsonBasedContent(clientJson, fileRestrictions);
+            ConfigFormat format = ConfigFormat.fromFilename(filename);
+            if (format == null) {
+                LOGGER.error("Unsupported file format for: {}", filename);
+                return false;
             }
+
+            JsonNode clientNode = JSON_MAPPER.readTree(clientContent);
+            return validateByFormat(format, clientNode, restrictions);
         } catch (Exception e) {
-            LOGGER.error("Error validating restricted values for " + filename, e);
+            LOGGER.error("Error validating config: " + filename, e);
             return false;
         }
     }
-
-    private static boolean isPropertyBasedFormat(String filename) {
-        return filename.endsWith(".properties") ||
-                filename.endsWith(".cfg") ||
-                filename.endsWith(".ini");
+    private static boolean validateByFormat(ConfigFormat format, JsonNode content, Map<String, Object> restrictions) {
+        return switch (format) {
+            case INI, PROPERTIES, CFG -> validateFlatContent(content, restrictions);
+            case JSON, JSON5, YAML, TOML, HOCON -> validateNestedContent(content, restrictions);
+            case TXT -> validateTxtContent(content, restrictions);
+        };
     }
+    private static boolean validateFlatContent(JsonNode content, Map<String, Object> restrictions) {
+        for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
+            String key = restriction.getKey();
+            Object expectedValue = restriction.getValue();
 
-    private static boolean validatePropertyBasedContent(String content, Map<String, Object> restrictions) {
-        try {
-            JsonNode contentNode = JSON_MAPPER.readTree(content);
-
-            for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
-                String path = restriction.getKey();
-                Object expectedValue = restriction.getValue();
-
-                // For INI files, handle section.key format
-                String[] parts = path.split("\\.");
-                JsonNode currentNode = contentNode;
-
-                for (String part : parts) {
-                    if (!currentNode.has(part)) {
-                        LOGGER.info("Property not found: {}", path);
-                        return false;
-                    }
-                    currentNode = currentNode.get(part);
-                }
-
-                if (!matchesValue(currentNode, expectedValue)) {
-                    LOGGER.info("Property mismatch: {} - expected: {}, actual: {}",
-                            path, expectedValue, currentNode);
-                    return false;
-                }
+            // Handle flat key-value structure
+            if (!content.has(key)) {
+                LOGGER.info("Key not found: {}", key);
+                return false;
             }
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Error parsing property content", e);
-            return false;
-        }
-    }
 
-
-
-    private static boolean validateTxtContent(String content, Map<String, Object> restrictions) {
-        try {
-            // Parse the JSON content since TxtConfigParser returns JSON
-            JsonNode contentNode = JSON_MAPPER.readTree(content);
-
-            for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
-                String key = restriction.getKey();
-                Object expectedValue = restriction.getValue();
-
-                if (!contentNode.has(key)) {
-                    LOGGER.info("Key not found in txt config: {}", key);
-                    return false;
-                }
-
-                JsonNode actualValue = contentNode.get(key);
-                if (!matchesValue(actualValue, expectedValue)) {
-                    LOGGER.info("Value mismatch in txt config: {} - expected: {}, actual: {}",
-                            key, expectedValue, actualValue);
-                    return false;
-                }
+            if (!matchesValue(content.get(key), expectedValue)) {
+                LOGGER.info("Value mismatch for {}: expected {}, got {}",
+                        key, expectedValue, content.get(key));
+                return false;
             }
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Error validating txt content", e);
-            return false;
         }
+        return true;
     }
 
-    private static boolean validateJsonBasedContent(JsonNode node, Map<String, Object> restrictions) {
+    private static boolean validateNestedContent(JsonNode content, Map<String, Object> restrictions) {
         for (Map.Entry<String, Object> restriction : restrictions.entrySet()) {
             String path = restriction.getKey();
             Object expectedValue = restriction.getValue();
 
-            // Handle nested paths
-            String[] pathParts = path.split("\\.");
-            JsonNode currentNode = node;
-
-            for (String part : pathParts) {
-                if (currentNode == null) {
-                    LOGGER.info("Path {} not found (null node)", path);
+            JsonNode currentNode = content;
+            for (String part : path.split("\\.")) {
+                if (currentNode == null || !currentNode.has(part)) {
+                    LOGGER.info("Path not found: {}", path);
                     return false;
                 }
-                // Handle array indices
-                if (part.matches("\\d+")) {
-                    int index = Integer.parseInt(part);
-                    if (!currentNode.isArray() || currentNode.size() <= index) {
-                        LOGGER.info("Invalid array access at path {}", path);
-                        return false;
-                    }
-                    currentNode = currentNode.get(index);
-                } else {
-                    if (!currentNode.has(part)) {
-                        LOGGER.info("Path {} not found at part {}", path, part);
-                        return false;
-                    }
-                    currentNode = currentNode.get(part);
-                }
+                currentNode = currentNode.get(part);
             }
 
             if (!matchesValue(currentNode, expectedValue)) {
@@ -179,27 +115,10 @@ public class ConfigValidator {
         return true;
     }
 
-
-    private static boolean matchesPropertyValue(String actualValue, Object expectedValue) {
-        // Convert property string value to appropriate type for comparison
-        if (expectedValue instanceof Boolean) {
-            return Boolean.parseBoolean(actualValue) != (Boolean) expectedValue;
-        } else if (expectedValue instanceof Number) {
-            try {
-                if (expectedValue instanceof Integer) {
-                    return Integer.parseInt(actualValue) != (Integer) expectedValue;
-                } else if (expectedValue instanceof Long) {
-                    return Long.parseLong(actualValue) != (Long) expectedValue;
-                } else if (expectedValue instanceof Double) {
-                    return !(Math.abs(Double.parseDouble(actualValue) -
-                            ((Number) expectedValue).doubleValue()) < 0.0001);
-                }
-            } catch (NumberFormatException e) {
-                return true;
-            }
-        }
-        return !actualValue.equals(expectedValue.toString());
+    private static boolean validateTxtContent(JsonNode content, Map<String, Object> restrictions) {
+        return validateFlatContent(content, restrictions); // TXT files are handled as flat key-value pairs
     }
+
     private static boolean matchesValue(JsonNode node, Object expectedValue) {
         if (node == null || expectedValue == null) {
             return node == null && expectedValue == null;
@@ -216,11 +135,10 @@ public class ConfigValidator {
             return false;
         } else if (expectedValue instanceof String) {
             return node.isTextual() && node.asText().equals(expectedValue);
-        } else if (expectedValue instanceof List) {
-            if (!node.isArray()) return false;
-            List<?> expectedList = (List<?>) expectedValue;
-            if (node.size() != expectedList.size()) return false;
-
+        } else if (expectedValue instanceof List<?> expectedList) {
+            if (!node.isArray() || node.size() != expectedList.size()) {
+                return false;
+            }
             for (int i = 0; i < expectedList.size(); i++) {
                 if (!matchesValue(node.get(i), expectedList.get(i))) {
                     return false;

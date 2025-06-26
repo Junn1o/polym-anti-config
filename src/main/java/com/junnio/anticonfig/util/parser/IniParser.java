@@ -5,6 +5,7 @@ import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 import java.io.FileReader;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.TreeMap;
 
 public final class IniParser {
@@ -17,24 +18,20 @@ public final class IniParser {
         TreeMap<String, Object> resultMap = new TreeMap<>();
 
         // Process default section
-        TreeMap<String, Object> defaultSection = processSection(ini.getSection(null));
-        if (!defaultSection.isEmpty()) {
-            resultMap.put("default", defaultSection);
-        }
+        processSection(ini.getSection(null), "", resultMap);
 
         // Process named sections
         for (String sectionName : ini.getSections()) {
-            resultMap.put(sectionName, processSection(ini.getSection(sectionName)));
+            processSection(ini.getSection(sectionName), sectionName, resultMap);
         }
 
         return ConfigParserUtils.getMapper().writeValueAsString(resultMap);
     }
 
-    private static TreeMap<String, Object> processSection(SubnodeConfiguration section) {
-        TreeMap<String, Object> sectionMap = new TreeMap<>();
-        section.getKeys().forEachRemaining(key ->
-                sectionMap.put(key, ConfigParserUtils.normalizeValue(section.getString(key)))
-        );
-        return sectionMap;
+    private static void processSection(SubnodeConfiguration section, String sectionPrefix, Map<String, Object> resultMap) {
+        section.getKeys().forEachRemaining(key -> {
+            String fullKey = sectionPrefix.isEmpty() ? key : sectionPrefix + "." + key;
+            resultMap.put(fullKey, ConfigParserUtils.normalizeValue(section.getString(key)));
+        });
     }
 }
