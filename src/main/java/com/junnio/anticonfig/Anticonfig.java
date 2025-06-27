@@ -11,5 +11,6 @@ public class Anticonfig implements ModInitializer {
 	public void onInitialize() {
 		ModConfig.load();
 		NetworkManager.init();
+		ReloadCommand.register();
 	}
 }

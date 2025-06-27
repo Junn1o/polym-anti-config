@@ -7,8 +7,6 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -83,7 +81,7 @@ public class ConfigValidator {
                 return false;
             }
 
-            if (!matchesValue(content.get(key), expectedValue)) {
+            if (matchesValue(content.get(key), expectedValue)) {
                 LOGGER.info("Value mismatch for {}: expected {}, got {}",
                         key, expectedValue, content.get(key));
                 return false;
@@ -106,7 +104,7 @@ public class ConfigValidator {
                 currentNode = currentNode.get(part);
             }
 
-            if (!matchesValue(currentNode, expectedValue)) {
+            if (matchesValue(currentNode, expectedValue)) {
                 LOGGER.info("Value mismatch at {}: expected {}, got {}",
                         path, expectedValue, currentNode);
                 return false;
@@ -121,32 +119,49 @@ public class ConfigValidator {
 
     private static boolean matchesValue(JsonNode node, Object expectedValue) {
         if (node == null || expectedValue == null) {
-            return node == null && expectedValue == null;
+            return node != null || expectedValue != null;
         }
 
+        // First, validate type compatibility
         if (expectedValue instanceof Boolean) {
-            return node.isBoolean() && node.asBoolean() == (Boolean) expectedValue;
-        } else if (expectedValue instanceof Number) {
-            if (node.isNumber()) {
-                double nodeValue = node.asDouble();
-                double expectedDouble = ((Number) expectedValue).doubleValue();
-                return Math.abs(nodeValue - expectedDouble) < 0.0001;
+            if (!node.isBoolean()) {
+                LOGGER.info("Type mismatch: expected boolean, got {}", node.getNodeType());
+                return true;
             }
-            return false;
+            return node.asBoolean() != (Boolean) expectedValue;
+        } else if (expectedValue instanceof Number) {
+            if (!node.isNumber()) {
+                LOGGER.info("Type mismatch: expected number, got {}", node.getNodeType());
+                return true;
+            }
+            double nodeValue = node.asDouble();
+            double expectedDouble = ((Number) expectedValue).doubleValue();
+            return !(Math.abs(nodeValue - expectedDouble) < 0.0001);
         } else if (expectedValue instanceof String) {
-            return node.isTextual() && node.asText().equals(expectedValue);
+            if (!node.isTextual()) {
+                LOGGER.info("Type mismatch: expected string, got {}", node.getNodeType());
+                return true;
+            }
+            return !node.asText().equals(expectedValue);
         } else if (expectedValue instanceof List<?> expectedList) {
-            if (!node.isArray() || node.size() != expectedList.size()) {
-                return false;
+            if (!node.isArray()) {
+                LOGGER.info("Type mismatch: expected array, got {}", node.getNodeType());
+                return true;
+            }
+            if (node.size() != expectedList.size()) {
+                LOGGER.info("Array size mismatch: expected {}, got {}", expectedList.size(), node.size());
+                return true;
             }
             for (int i = 0; i < expectedList.size(); i++) {
-                if (!matchesValue(node.get(i), expectedList.get(i))) {
-                    return false;
+                if (matchesValue(node.get(i), expectedList.get(i))) {
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
-        return false;
+
+        LOGGER.warn("Unsupported value type: {}", expectedValue.getClass());
+        return true;
     }
 
 

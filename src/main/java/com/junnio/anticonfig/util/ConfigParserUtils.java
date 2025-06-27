@@ -30,17 +30,27 @@ public final class ConfigParserUtils {
         if (value == null) return null;
         value = value.trim();
 
+        // Handle boolean values strictly
         if (value.equalsIgnoreCase("true")) return Boolean.TRUE;
         if (value.equalsIgnoreCase("false")) return Boolean.FALSE;
+        if (value.equalsIgnoreCase("null")) return null;
+        if (value.isEmpty()) return "";
 
+        // Try parsing as number with strict format checking
         try {
             if (value.contains(".")) {
-                return Double.parseDouble(value);
+                if (value.matches("^-?\\d+\\.\\d+$")) { // Strict decimal format
+                    return Double.parseDouble(value);
+                }
+            } else if (value.matches("^-?\\d+$")) { // Strict integer format
+                return Long.parseLong(value);
             }
-            return Long.parseLong(value);
         } catch (NumberFormatException ignored) {
-            return value;
+            // Fall through to return as string
         }
+
+        // If not a valid number or boolean, return as string
+        return value;
     }
 
     public static void validateRestrictedValue(String filename, Map<String, Object> restrictions) {
