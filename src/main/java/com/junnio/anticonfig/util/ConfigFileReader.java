@@ -20,34 +20,36 @@ public class ConfigFileReader {
             return null;
         }
         try {
+            String result = null;
             if (filename.endsWith(".json")) {
                 FileConfig fileConfig = FileConfig.of(configPath, JsonFormat.fancyInstance());
                 fileConfig.load();
-                return NightConfigParser.configToString(fileConfig);
+                result = NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".toml")) {
                 FileConfig fileConfig = FileConfig.of(configPath, TomlFormat.instance());
                 fileConfig.load();
-                return NightConfigParser.configToString(fileConfig);
+                result =  NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".yaml") || filename.endsWith(".yml")) {
                 FileConfig fileConfig = FileConfig.of(configPath, YamlFormat.defaultInstance());
                 fileConfig.load();
-                return NightConfigParser.configToString(fileConfig);
+                result =  NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".json5")) {
-                return Json5Parser.json5ToString(configPath);
+                result =  Json5Parser.json5ToString(configPath);
             } else if (filename.endsWith(".hocon") || filename.endsWith(".conf")) {
                 FileConfig fileConfig = FileConfig.of(configPath, HoconFormat.instance());
                 fileConfig.load();
-                return NightConfigParser.configToString(fileConfig);
+                result =  NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".ini")) {
-                return IniParser.iniToString(configPath);
+                result =  IniParser.iniToString(configPath);
             } else if (filename.endsWith(".properties") || filename.endsWith(".cfg")) {
-                return PropertiesParser.propertiesToString(configPath);
+                result =  PropertiesParser.propertiesToString(configPath);
             } else if (filename.endsWith(".txt")) {
-                return TxtConfigParser.txtToString(configPath);
+                result =  TxtConfigParser.txtToString(configPath);
             }
+            return result != null ? result : ConfigParserUtils.PARSE_ERROR_MARKER;
         } catch (Exception e) {
             LOGGER.error("Failed to read config file: " + filename, e);
+            return ConfigParserUtils.PARSE_ERROR_MARKER;
         }
-        return null;
     }
 }

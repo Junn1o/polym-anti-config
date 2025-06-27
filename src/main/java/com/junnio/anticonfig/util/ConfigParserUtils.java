@@ -11,6 +11,7 @@ import java.util.Map;
 public final class ConfigParserUtils {
     private static final ObjectMapper SHARED_MAPPER = createObjectMapper();
     private static final Logger LOGGER = LoggerFactory.getLogger("ConfigParserUtils");
+    public static final String PARSE_ERROR_MARKER = "__PARSE_ERROR__";
 
     private ConfigParserUtils() {}
 

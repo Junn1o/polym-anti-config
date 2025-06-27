@@ -29,10 +29,18 @@ public class ConfigValidator {
             if (serverContent != null) {
                 serverConfigs.put(filename, serverContent);
                 String clientContent = clientConfigs.get(filename);
+                if (clientContent != null) {
+                    if (ConfigParserUtils.PARSE_ERROR_MARKER.equals(clientContent)) {
+                        LOGGER.error("Client config file {} exists but is malformed", filename);
+                        mismatch = true;
+                        mismatchedConfigs.add(filename);
+                        continue;
+                    }
 
-                if (clientContent != null && !validateConfig(filename, clientContent, serverContent, restrictedValues)) {
-                    mismatch = true;
-                    mismatchedConfigs.add(filename);
+                    if (!validateConfig(filename, clientContent, serverContent, restrictedValues)) {
+                        mismatch = true;
+                        mismatchedConfigs.add(filename);
+                    }
                 }
             }
         }
