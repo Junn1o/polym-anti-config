@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "com.junnio.anticonfig.mixin.client",
+	"package": "com.junnio.anticonfig.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"ExampleClientMixin"

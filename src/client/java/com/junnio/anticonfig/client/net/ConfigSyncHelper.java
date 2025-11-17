@@ -1,20 +1,18 @@
-package com.junnio.anticonfig.net;
+package com.junnio.anticonfig.client.net;
 
 import com.junnio.anticonfig.config.ModConfig;
+import com.junnio.anticonfig.net.ConfigSyncPayload;
 import com.junnio.anticonfig.util.ConfigFileReader;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigSyncHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger("ConfigSyncHelper");
     private static Map<String, String> lastServerConfigs = new HashMap<>();
 
     public static Map<String, String> readConfigsForSync(Iterable<String> configsToRead) {
