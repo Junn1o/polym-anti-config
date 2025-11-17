@@ -1,4 +1,4 @@
-package com.junnio.anticonfig;
+package com.junnio.anticonfig.command;
 
 import com.junnio.anticonfig.config.ModConfig;
 import com.mojang.brigadier.Command;

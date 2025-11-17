@@ -55,7 +55,7 @@ public class ConfigValidator {
                 return serverContent.equals(clientContent);
             }
 
-            LOGGER.info("Validating {} with content: {}", filename, clientContent);
+            //LOGGER.info("Validating {} with content: {}", filename, clientContent);
             Map<String, Object> restrictions = restrictedValues.get(filename);
 
             ConfigFormat format = ConfigFormat.fromFilename(filename);
