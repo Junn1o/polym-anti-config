@@ -57,6 +57,12 @@ dependencies {
 	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}")
 	implementation "org.apache.commons:commons-configuration2:2.13.0"
 	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.20.1")
+	implementation("com.fasterxml.jackson.core:jackson-core:2.20.1")
+	implementation("com.fasterxml.jackson.core:jackson-annotations:2.20")
+	include "com.fasterxml.jackson.core:jackson-databind:2.20.1"
+	include "com.fasterxml.jackson.core:jackson-core:2.20.1"
+	include "com.fasterxml.jackson.core:jackson-annotations:2.20"
 	//modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 	//include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
 	//implementation("com.squareup.moshi:moshi:1.15.2")
