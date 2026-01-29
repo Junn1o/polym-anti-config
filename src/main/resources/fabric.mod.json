@@ -1,11 +1,11 @@
 {
 	"schemaVersion": 1,
-	"id": "anticonfig",
+	"id": "polym-anti-config",
 	"version": "${version}",
-	"name": "anticonfig",
+	"name": "polym-anti-config",
 	"description": "This mod is about preventing client bypass config of server",
 	"authors": [
-		"Me!"
+		"Junnio"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -30,10 +30,12 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.4",
+		"fabricloader": "*",
+		"minecraft": ">=1.21.9",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"modmenu": "*",
+		"cloth-config2": "*"
 	},
 	"suggests": {
 		"another-mod": "*"

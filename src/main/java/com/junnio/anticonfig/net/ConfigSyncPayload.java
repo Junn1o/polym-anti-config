@@ -1,29 +1,28 @@
 package com.junnio.anticonfig.net;
 
 import com.junnio.anticonfig.Anticonfig;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record ConfigSyncPayload(Map<String, String> configs) implements CustomPayload {
-    public static final CustomPayload.Id<ConfigSyncPayload> ID =
-            new CustomPayload.Id<>(Identifier.of(Anticonfig.MODID, "config_sync"));
-    private static final PacketCodec<RegistryByteBuf, Map<String, String>> CONFIG_MAP_CODEC =
-            PacketCodecs.map(
+public record ConfigSyncPayload(Map<String, String> configs) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ConfigSyncPayload> ID =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Anticonfig.MODID, "config_sync"));
+    private static final StreamCodec<RegistryFriendlyByteBuf, Map<String, String>> CONFIG_MAP_CODEC =
+            ByteBufCodecs.map(
                     HashMap::new,
-                    PacketCodecs.STRING,  // filename
-                    PacketCodecs.STRING   // content
+                    ByteBufCodecs.STRING_UTF8,  // filename
+                    ByteBufCodecs.STRING_UTF8   // content
             );
-    public static final PacketCodec<RegistryByteBuf, ConfigSyncPayload> CODEC = CONFIG_MAP_CODEC
-            .xmap(ConfigSyncPayload::new, ConfigSyncPayload::configs);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ConfigSyncPayload> CODEC = CONFIG_MAP_CODEC
+            .map(ConfigSyncPayload::new, ConfigSyncPayload::configs);
 
     @Override
-    public CustomPayload.Id<?> getId() {
+    public CustomPacketPayload.Type<?> type() {
         return ID;
     }
 }

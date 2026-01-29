@@ -4,8 +4,8 @@ import com.junnio.anticonfig.Anticonfig;
 import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.util.ConfigValidator;
 import net.fabricmc.fabric.api.networking.v1.*;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class NetworkManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
-    public static final Identifier CONFIG_SYNC_ID = Identifier.of(Anticonfig.MODID, "config_sync");
+    public static final Identifier CONFIG_SYNC_ID = Identifier.fromNamespaceAndPath(Anticonfig.MODID, "config_sync");
 
     public static void init() {
         PayloadTypeRegistry.playC2S().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
@@ -27,8 +27,8 @@ public class NetworkManager {
                     config.getConfigFilesToCheck()
             );
 
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeMap(result.getServerConfigs(), PacketByteBuf::writeString, PacketByteBuf::writeString);
+            FriendlyByteBuf buf = PacketByteBufs.create();
+            buf.writeMap(result.getServerConfigs(), FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeUtf);
             sender.sendPacket(CONFIG_SYNC_ID, buf);
         });
 
@@ -39,7 +39,7 @@ public class NetworkManager {
                 return;
             }
 
-            Map<String, String> clientConfigs = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
+            Map<String, String> clientConfigs = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readUtf);
             ModConfig config = ModConfig.getInstance();
 
             ConfigValidator.ValidationResult result = ConfigValidator.validateConfigs(
@@ -62,7 +62,7 @@ public class NetworkManager {
                 );
 
                 if (result.hasMismatch()) {
-                    context.player().networkHandler.disconnect(result.notifyBypassMessage());
+                    context.player().connection.disconnect(result.notifyBypassMessage());
                 }
             });
         });

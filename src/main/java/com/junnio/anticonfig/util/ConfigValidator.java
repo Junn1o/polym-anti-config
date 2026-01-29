@@ -3,12 +3,12 @@ package com.junnio.anticonfig.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junnio.anticonfig.config.ModConfig;
-import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.*;
+import net.minecraft.network.chat.Component;
 
 public class ConfigValidator {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
@@ -190,8 +190,8 @@ public class ConfigValidator {
         public Set<String> getMismatchedConfigs() {
             return mismatchedConfigs;
         }
-        public Text getDisconnectMessage() {
-            Text startText = Text.translatable("anticonfig.text.startresult");
+        public Component getDisconnectMessage() {
+            Component startText = Component.translatable("anticonfig.text.startresult");
             StringBuilder configListBuilder = new StringBuilder("\n");
             List<String> sortedMismatches = new ArrayList<>(mismatchedConfigs);
             Collections.sort(sortedMismatches);
@@ -205,15 +205,15 @@ public class ConfigValidator {
                 }
             }
 
-            Text configListText = Text.literal(configListBuilder.toString());
-            Text endText = Text.translatable("anticonfig.text.endtresult");
+            Component configListText = Component.literal(configListBuilder.toString());
+            Component endText = Component.translatable("anticonfig.text.endtresult");
             return startText.copy()
                     .append(configListText)
                     .append("\n")
                     .append(endText);
         }
-        public Text notifyBypassMessage() {
-            return Text.translatable("anticonfig.text.bypassnotify");
+        public Component notifyBypassMessage() {
+            return Component.translatable("anticonfig.text.bypassnotify");
         }
 
 

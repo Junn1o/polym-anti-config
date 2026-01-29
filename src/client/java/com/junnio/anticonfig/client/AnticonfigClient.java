@@ -7,16 +7,16 @@ import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.minecraft.network.PacketByteBuf;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import net.minecraft.network.FriendlyByteBuf;
 public class AnticonfigClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientLoginNetworking.registerGlobalReceiver(NetworkManager.CONFIG_SYNC_ID, (client, handler, buf, listenerAdder) -> {
-            Map<String, String> serverConfigs = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
+
+            Map<String, String> serverConfigs = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readUtf);
             ConfigSyncHelper.setServerConfigs(serverConfigs);
 
             Map<String, String> clientConfigs = ConfigSyncHelper.readConfigsForSync(serverConfigs.keySet());

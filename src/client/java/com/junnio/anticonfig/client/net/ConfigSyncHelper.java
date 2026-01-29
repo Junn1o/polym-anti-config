@@ -5,9 +5,8 @@ import com.junnio.anticonfig.net.ConfigSyncPayload;
 import com.junnio.anticonfig.util.ConfigFileReader;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.FriendlyByteBuf;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +27,9 @@ public class ConfigSyncHelper {
         return configs;
     }
 
-    public static PacketByteBuf createConfigSyncPacket(Map<String, String> configs) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeMap(configs, PacketByteBuf::writeString, PacketByteBuf::writeString);
+    public static FriendlyByteBuf createConfigSyncPacket(Map<String, String> configs) {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        buf.writeMap(configs, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeUtf);
         return buf;
     }
 
@@ -39,7 +38,7 @@ public class ConfigSyncHelper {
     }
 
     public static void onConfigScreenClose() {
-        if (MinecraftClient.getInstance().player != null) {
+        if (Minecraft.getInstance().player != null) {
             Map<String, String> configsToSync = readConfigsForSync(lastServerConfigs.keySet());
             ConfigSyncPayload payload = new ConfigSyncPayload(configsToSync);
             ClientPlayNetworking.send(payload);
