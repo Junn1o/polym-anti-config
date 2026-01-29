@@ -12,10 +12,10 @@ public class ReloadCommand {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(Commands.literal("anticonfig")
                     .then(Commands.literal("reload")
-                            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR)) // Requires operator permission
+                            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER)) // Requires operator permission
                             .executes(context -> {
                                 ModConfig.load();
-                                context.getSource().sendSuccess(() -> Component.literal("Configuration reloaded"), true);
+                                context.getSource().sendSuccess(() -> Component.literal("Configuration reloaded"),true);
                                 return Command.SINGLE_SUCCESS;
                             })));
         });
