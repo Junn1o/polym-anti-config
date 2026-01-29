@@ -35,7 +35,7 @@ public class ConfigFileReader {
 //                fileConfig.load();
 //                result =  NightConfigParser.configToString(fileConfig);
             } else if (filename.endsWith(".json5")) {
-                result =  Json5Parser.json5ToString(configPath);
+                result = Json5Parser.json5ToString(configPath);
 //            } else if (filename.endsWith(".hocon") || filename.endsWith(".conf")) {
 //                FileConfig fileConfig = FileConfig.of(configPath, HoconFormat.instance());
 //                fileConfig.load();

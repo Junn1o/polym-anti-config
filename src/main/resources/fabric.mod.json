@@ -5,7 +5,7 @@
 	"name": "polym-anti-config",
 	"description": "This mod is about preventing client bypass config of server",
 	"authors": [
-		"Me!"
+		"Junnio"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -30,7 +30,7 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.18.4",
+		"fabricloader": "*",
 		"minecraft": ">=1.21.9",
 		"java": ">=21",
 		"fabric-api": "*",
