@@ -33,7 +33,7 @@ public class ModConfig {
 
     public static ModConfig getInstance() {
         if (INSTANCE == null) {
-            load();
+            init();
         }
         return INSTANCE;
     }
@@ -42,10 +42,7 @@ public class ModConfig {
         return configFilesToCheck;
     }
 
-    private void setupDefaultRestrictions() {
-    }
-
-    public static void load() {
+    public static void init() {
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(CONFIG_FILE);
         if (Files.exists(configPath)) {
             try {

@@ -1,5 +1,6 @@
 {
   "anticonfig.text.startresult": "§eConfig mismatch with server!",
   "anticonfig.text.endtresult": "§fPlease contact Administrator for more details!",
-  "anticonfig.text.bypassnotify": "§fAction you did \nwas unacceptable\nYou should be ashamed of yourself for doing that"
+  "anticonfig.text.bypassnotify": "§fAction you did \nwas unacceptable\nYou should be ashamed of yourself for doing that",
+  "anticonfig.text.mismatch": "§ePolym_anti_config version mismatch.\n§eServer= %1$s §eClient= %2$s"
 }

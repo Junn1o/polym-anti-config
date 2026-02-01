@@ -14,7 +14,7 @@ public class ReloadCommand {
                     .then(Commands.literal("reload")
                             .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER)) // Requires operator permission
                             .executes(context -> {
-                                ModConfig.load();
+                                ModConfig.init();
                                 context.getSource().sendSuccess(() -> Component.literal("Configuration reloaded"),true);
                                 return Command.SINGLE_SUCCESS;
                             })));

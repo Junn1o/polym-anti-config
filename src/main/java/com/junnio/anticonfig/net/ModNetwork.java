@@ -5,6 +5,7 @@ import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.util.ConfigValidator;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +13,13 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NetworkManager {
+public class ModNetwork {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
     public static final Identifier CONFIG_SYNC_ID = Identifier.fromNamespaceAndPath(Anticonfig.MODID, "config_sync");
 
-    public static void init() {
+    public static void init(String serverVer) {
         PayloadTypeRegistry.playC2S().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
-
+        PayloadTypeRegistry.playC2S().register(VersionCheckPayLoad.ID, VersionCheckPayLoad.CODEC);
         // Server sends configs to client during login
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             ModConfig config = ModConfig.getInstance();
@@ -65,6 +66,16 @@ public class NetworkManager {
                     context.player().connection.disconnect(result.notifyBypassMessage());
                 }
             });
+        });
+        //check version
+        ServerPlayNetworking.registerGlobalReceiver(VersionCheckPayLoad.ID, (payload, context) -> {
+            String clientVer = payload.ver();
+            if (!serverVer.equals(clientVer)) {
+                System.out.println(serverVer);
+                context.player().connection.disconnect(
+                        Component.translatable("anticonfig.text.mismatch", serverVer, clientVer)
+                );
+            }
         });
     }
 }

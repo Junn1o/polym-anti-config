@@ -22,7 +22,7 @@ public record ConfigSyncPayload(Map<String, String> configs) implements CustomPa
             .map(ConfigSyncPayload::new, ConfigSyncPayload::configs);
 
     @Override
-    public CustomPacketPayload.Type<?> type() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }
