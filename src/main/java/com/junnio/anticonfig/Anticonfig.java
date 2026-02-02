@@ -7,12 +7,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class Anticonfig implements ModInitializer {
-	public static final String MODID = "anticonfig";
+	public static final String MODID = "polym-anti-config";
 
 	@Override
 	public void onInitialize() {
 		ModConfig.init();
-		ModNetwork.init("1.0.1");
+		ModNetwork.init();
 		ModCommand.init();
 	}
 }

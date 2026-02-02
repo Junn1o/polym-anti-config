@@ -4,6 +4,7 @@ import com.junnio.anticonfig.Anticonfig;
 import com.junnio.anticonfig.config.ModConfig;
 import com.junnio.anticonfig.util.ConfigValidator;
 import net.fabricmc.fabric.api.networking.v1.*;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -17,7 +18,7 @@ public class ModNetwork {
     private static final Logger LOGGER = LoggerFactory.getLogger("AntiConfig");
     public static final Identifier CONFIG_SYNC_ID = Identifier.fromNamespaceAndPath(Anticonfig.MODID, "config_sync");
 
-    public static void init(String serverVer) {
+    public static void init() {
         PayloadTypeRegistry.playC2S().register(ConfigSyncPayload.ID, ConfigSyncPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(VersionCheckPayLoad.ID, VersionCheckPayLoad.CODEC);
         // Server sends configs to client during login
@@ -70,8 +71,13 @@ public class ModNetwork {
         //check version
         ServerPlayNetworking.registerGlobalReceiver(VersionCheckPayLoad.ID, (payload, context) -> {
             String clientVer = payload.ver();
+            String serverVer = FabricLoader.getInstance()
+                    .getModContainer(Anticonfig.MODID)
+                    .orElseThrow()
+                    .getMetadata()
+                    .getVersion()
+                    .getFriendlyString();
             if (!serverVer.equals(clientVer)) {
-                System.out.println(serverVer);
                 context.player().connection.disconnect(
                         Component.translatable("anticonfig.text.mismatch", serverVer, clientVer)
                 );

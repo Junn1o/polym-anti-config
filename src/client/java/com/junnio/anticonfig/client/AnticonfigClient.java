@@ -6,7 +6,7 @@ import net.fabricmc.api.ClientModInitializer;
 public class AnticonfigClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ModNetwork.init("1.0.1");
+        ModNetwork.init();
         ModEvent.init();
     }
 }
