@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -29,6 +30,19 @@ public class ModNetwork {
                     .getVersion()
                     .getFriendlyString();
             ClientPlayNetworking.send(new VersionCheckPayLoad(clientVer));
+
+        });
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            client.execute(() -> {
+                String string = FabricLoader.getInstance()
+                        .getModContainer("bedrockminer")
+                        .orElseThrow()
+                        .getMetadata()
+                        .getName();
+                if(string!=null){
+                    if (client.level != null) client.level.disconnect(Component.translatable("anticonfig.text.blockmod",string));
+                }
+            });
         });
     }
 }

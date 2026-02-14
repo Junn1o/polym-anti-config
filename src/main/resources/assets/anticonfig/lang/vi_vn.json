@@ -2,5 +2,6 @@
   "anticonfig.text.startresult": "§eConfig của mod không phù hợp trong server!",
   "anticonfig.text.endtresult": "§fVui lòng liên hệ Administrator để được giải đáp!",
   "anticonfig.text.bypassnotify": "§fÁ àaaa. Hành động không thể chấp nhận được\nBạn nên thấy xấu hổ vì đã làm như vậy đi\nVào góc nhà tự kiểm điểm bản thân đi!",
-  "anticonfig.text.mismatch": "§ePolym_anti_config không trùng version với mod.\nServer= %1$s Client= %2$s"
+  "anticonfig.text.mismatch": "§ePolym_anti_config không trùng version với mod.\nServer= %1$s Client= %2$s",
+  "anticonfig.text.blockmod": "§eMod này §f%1$s §ebị cấm trong server!"
 }
