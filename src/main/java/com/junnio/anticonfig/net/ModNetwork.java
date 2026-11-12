@@ -37,7 +37,8 @@ public class ModNetwork {
         // Server receives and validates client configs
         ServerLoginNetworking.registerGlobalReceiver(CONFIG_SYNC_ID, (server, handler, understood, buf, synchronizer, responseSender) -> {
             if (!understood) {
-                LOGGER.warn("Client doesn't have the mod installed");
+                LOGGER.warn("Client doesn't have the mod installed, disconnecting");
+                handler.disconnect(Component.translatable("anticonfig.text.notinstalled"));
                 return;
             }
 
